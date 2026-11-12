@@ -12,7 +12,7 @@ magpie calls `onProvider` once a request is routed and once per try, so this mid
 
 ## Install
 
-magpie installs a plugin from npm, GitHub or a folder. Point it at this package's folder (**Plugins › Installed › Install from folder**), or publish it and `magpie plugin add <spec>`.
+magpie installs a plugin from npm, GitHub or a folder. Add this repository — it carries the `magpie-plugin` topic, so **Plugins › Discover** finds it — or point magpie at a checkout's folder (**Plugins › Installed › Install from folder**).
 
 Set its options under **Plugins › Installed › Options**, or with `magpie plugin options antigravity-coding-filter '<json>'`.
 
