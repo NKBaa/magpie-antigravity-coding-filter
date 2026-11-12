@@ -79,6 +79,47 @@
             ><input id="useModelKeywords" type="checkbox" role="switch"
           /></label>
         </section>
+        <section aria-labelledby="catalog-title">
+          <div class="section-head">
+            <h2 id="catalog-title" data-t="catalogTitle">内置规则</h2>
+            <small id="catalog-count" class="muted" aria-live="polite"></small>
+          </div>
+          <div
+            id="catalog-groups"
+            class="catalog-groups"
+            role="group"
+            aria-labelledby="catalog-title"
+          ></div>
+          <label class="field catalog-search"
+            ><span data-t="catalogSearch">搜索规则名称</span
+            ><input
+              id="catalog-search"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+          /></label>
+          <p id="catalog-note" class="muted"></p>
+          <div
+            class="catalog-table"
+            tabindex="0"
+            role="region"
+            aria-labelledby="catalog-title"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th data-t="catalogName">名称</th>
+                  <th data-t="catalogReplacement">替换值（改写模式）</th>
+                  <th data-t="catalogStatus">状态</th>
+                </tr>
+              </thead>
+              <tbody id="catalog-rows"></tbody>
+            </table>
+          </div>
+          <p id="catalog-empty" class="muted" data-t="catalogEmpty" hidden>
+            没有匹配的规则。
+          </p>
+        </section>
         <section aria-labelledby="rules-title">
           <div class="section-head">
             <div>

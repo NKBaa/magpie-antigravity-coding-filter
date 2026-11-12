@@ -138,6 +138,49 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         url: pathToFileURL(join(root, "page/index.html")).href,
       });
       await wait(`document.getElementById('state')?.textContent==='已保存'`);
+      expect(
+        await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
+      ).toBe(47);
+      await evaluate(
+        `document.getElementById('catalog-search').value='chatbox';document.getElementById('catalog-search').dispatchEvent(new Event('input',{bubbles:true}))`,
+      );
+      expect(
+        await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
+      ).toBe(2);
+      expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
+        true,
+      );
+      await evaluate(
+        `document.getElementById('catalog-search').value='';document.querySelector('#catalog-groups [data-group="models"]').click()`,
+      );
+      expect(
+        await evaluate(
+          `document.querySelectorAll('#catalog-rows tr[data-state="disabled"]').length`,
+        ),
+      ).toBe(16);
+      await evaluate(`document.getElementById('useModelKeywords').click()`);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('#catalog-rows tr[data-state="enabled"]').length`,
+        ),
+      ).toBe(16);
+      await evaluate(
+        `document.getElementById('useModelKeywords').click();document.querySelector('#catalog-groups [data-group="ambiguous"]').click()`,
+      );
+      expect(
+        await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
+      ).toBe(11);
+      expect(
+        await evaluate(
+          `document.querySelector('#catalog-rows tr[data-name="Cursor"]').dataset.state`,
+        ),
+      ).toBe("overridden");
+      await evaluate(
+        `document.querySelector('#catalog-groups [data-group="common"]').click()`,
+      );
+      expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
+        true,
+      );
       expect(await evaluate(`uiErrors`)).toEqual([]);
       expect(
         await evaluate(

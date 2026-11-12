@@ -228,6 +228,55 @@ summary {
 [hidden] {
   display: none !important;
 }
+.catalog-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.catalog-search {
+  margin: 10px 0;
+}
+.catalog-search input {
+  width: 100%;
+}
+.catalog-table {
+  max-height: 240px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--magpie-line, ButtonBorder);
+  border-radius: 6px;
+}
+.catalog-table table {
+  margin: 0;
+  table-layout: fixed;
+}
+.catalog-table th {
+  position: sticky;
+  top: 0;
+  background: var(--magpie-card, Canvas);
+  z-index: 1;
+}
+.catalog-table td,
+.catalog-table th {
+  overflow-wrap: anywhere;
+}
+.catalog-table th:first-child {
+  width: 40%;
+}
+.catalog-table th:last-child {
+  width: 26%;
+}
+.catalog-table tr[data-state="excluded"] td:last-child {
+  color: var(--magpie-red, CanvasText);
+}
+.catalog-table tr[data-state="disabled"] {
+  color: var(--magpie-muted, GrayText);
+}
+#catalog-note {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
 @media (max-width: 900px) {
   main {
     grid-template-columns: 1fr;

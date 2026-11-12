@@ -154,5 +154,41 @@
     for (const alias of Object.keys(aliases)) delete result[alias];
     return result;
   }
-  globalThis.FilterForm = { defaults, normalize, build, preview, merge };
+  function catalog(value, group = "common") {
+    const { options, rows } = normalize(value);
+    const filter = globalThis.AntigravityFilter;
+    const groups = {
+      common: [filter.defaultMappings, options.useDefaultKeywords],
+      models: [filter.modelMappings, options.useModelKeywords],
+      ambiguous: [filter.ambiguousMappings, options.useAmbiguousKeywords],
+    };
+    const [list, enabled] = groups[group] || [[], false];
+    const overrides = new Map(rows.map((row) => [row.name.toLowerCase(), row]));
+    return list.map(([name, replacement]) => {
+      const custom = overrides.get(name.toLowerCase());
+      return {
+        name,
+        replacement: custom
+          ? custom.exclude
+            ? null
+            : custom.replacement
+          : replacement,
+        state: custom
+          ? custom.exclude
+            ? "excluded"
+            : "overridden"
+          : enabled
+            ? "enabled"
+            : "disabled",
+      };
+    });
+  }
+  globalThis.FilterForm = {
+    defaults,
+    normalize,
+    build,
+    preview,
+    merge,
+    catalog,
+  };
 })();

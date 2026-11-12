@@ -100,6 +100,37 @@ test("conflicting edits reject the save, including edit/delete conflicts", () =>
   ).toThrow("conflict");
 });
 
+test("built-in catalog groups reflect their switches and custom overrides", () => {
+  expect(M.catalog({}).length).toBe(47);
+  expect(M.catalog({}, "models").length).toBe(16);
+  expect(M.catalog({}, "ambiguous").length).toBe(11);
+  expect(M.catalog({}).every((rule) => rule.state === "enabled")).toBe(true);
+  expect(
+    M.catalog({}, "models").every((rule) => rule.state === "disabled"),
+  ).toBe(true);
+  expect(
+    M.catalog({ useModelKeywords: true }, "models").every(
+      (rule) => rule.state === "enabled",
+    ),
+  ).toBe(true);
+  const rules = M.catalog({
+    useDefaultKeywords: false,
+    customMappings: { chatbox: "Example", Windsurf: null },
+  });
+  expect(rules.find((rule) => rule.name === "Chatbox")).toEqual({
+    name: "Chatbox",
+    replacement: "Example",
+    state: "overridden",
+  });
+  expect(rules.find((rule) => rule.name === "Windsurf").state).toBe("excluded");
+  expect(rules.find((rule) => rule.name === "OpenCode").state).toBe("disabled");
+  expect(
+    M.catalog({ custom_mappings: "Chatbox: Example" }).find(
+      (rule) => rule.name === "Chatbox",
+    ).state,
+  ).toBe("overridden");
+});
+
 test("outgoing preview matches disabled and dry-run behavior", () => {
   const text = "You are Chatbox.";
   expect(M.preview(text, { off: true }).text).toBe(text);

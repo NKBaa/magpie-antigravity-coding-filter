@@ -78,6 +78,24 @@
       saveFailed: "保存失败：",
       reload: "重新加载",
       excluded: "将保留此名称，不参与处理",
+      catalogTitle: "内置规则",
+      catalogSearch: "搜索规则名称",
+      catalogName: "名称",
+      catalogReplacement: "替换值（改写模式）",
+      catalogStatus: "状态",
+      catalogEmpty: "没有匹配的规则。",
+      catalogCommon: "默认词表",
+      catalogModels: "模型名称",
+      catalogAmbiguous: "歧义词（默认关闭）",
+      catalogEnabled: "已启用",
+      catalogDisabled: "未启用",
+      catalogOverridden: "自定义覆盖",
+      catalogExcluded: "已排除",
+      catalogHint:
+        "下表显示当前草稿的规则配置。替换值仅用于“替换名字”模式；“保留原文”模式会插入不可见字符。",
+      catalogOff: "过滤已关闭，以下规则暂不执行。",
+      catalogDry: "当前仅检查，以下规则不会改动请求。",
+      catalogCount: "条规则",
       pending: "设置尚未读取完成。",
       standalone: "预览模式；更改可保存到本浏览器",
       selectCopy: "已选中 JSON，请按 Ctrl/Cmd+C 复制。",
@@ -151,6 +169,25 @@
       saveFailed: "Could not save: ",
       reload: "Reload",
       excluded: "This name will be preserved",
+      catalogTitle: "Built-in rules",
+      catalogSearch: "Search rule names",
+      catalogName: "Name",
+      catalogReplacement: "Replacement (rewrite mode)",
+      catalogStatus: "Status",
+      catalogEmpty: "No matching rules.",
+      catalogCommon: "Default names",
+      catalogModels: "Model names",
+      catalogAmbiguous: "Ambiguous names (off by default)",
+      catalogEnabled: "Enabled",
+      catalogDisabled: "Not enabled",
+      catalogOverridden: "Custom override",
+      catalogExcluded: "Excluded",
+      catalogHint:
+        "Rules reflect the current draft. Replacement values apply in rewrite mode; keep wording inserts invisible characters.",
+      catalogOff: "Filtering is off; these rules will not run.",
+      catalogDry:
+        "Check-only mode is on; these rules will not modify requests.",
+      catalogCount: "rules",
       pending: "Settings are still loading.",
       standalone: "Preview mode; changes can be saved in this browser",
       selectCopy: "JSON selected. Press Ctrl/Cmd+C to copy.",
@@ -166,7 +203,8 @@
     ready = false,
     busy = false,
     lastWrite = 0,
-    loadedLocal = false;
+    loadedLocal = false,
+    catalogGroup = "common";
   const bridge = globalThis.magpie,
     t = (key) => words[lang][key] || key;
   const controls = globalThis.FilterControls,
@@ -291,6 +329,78 @@
     const fields = $("rules").querySelectorAll('input[data-field="name"]');
     fields[fields.length - 1]?.focus();
   }
+  function drawCatalog(options) {
+    const groups = $("catalog-groups");
+    const definitions = [
+      ["common", "catalogCommon"],
+      ["models", "catalogModels"],
+      ["ambiguous", "catalogAmbiguous"],
+    ];
+    if (!groups.children.length) {
+      for (const [group] of definitions) {
+        const button = controls.button(
+          "",
+          () => {
+            catalogGroup = group;
+            render();
+          },
+          "text",
+        );
+        button.dataset.group = group;
+        groups.append(button);
+      }
+    }
+    for (const [group, label] of definitions) {
+      const button = groups.querySelector('[data-group="' + group + '"]');
+      button.textContent =
+        t(label) + " · " + M.catalog(options || {}, group).length;
+      button.setAttribute("aria-pressed", String(catalogGroup === group));
+    }
+    if (!options) {
+      $("catalog-rows").replaceChildren();
+      $("catalog-count").textContent = "";
+      $("catalog-empty").hidden = true;
+      $("catalog-note").textContent = t("invalid");
+      return;
+    }
+    const list = M.catalog(options, catalogGroup);
+    const query = $("catalog-search").value.trim().toLowerCase();
+    const visible = list.filter((rule) =>
+      rule.name.toLowerCase().includes(query),
+    );
+    const status = {
+      enabled: "catalogEnabled",
+      disabled: "catalogDisabled",
+      overridden: "catalogOverridden",
+      excluded: "catalogExcluded",
+    };
+    $("catalog-rows").replaceChildren(
+      ...visible.map((rule) => {
+        const row = ui.el("tr");
+        row.dataset.name = rule.name;
+        row.dataset.state = rule.state;
+        const name = ui.el("td"),
+          value = ui.el("td"),
+          state = ui.el("td");
+        name.append(ui.el("code", "", rule.name));
+        value.append(
+          ui.el("code", "", rule.replacement === null ? "—" : rule.replacement),
+        );
+        state.textContent = t(status[rule.state]);
+        row.append(name, value, state);
+        return row;
+      }),
+    );
+    $("catalog-count").textContent =
+      visible.length + " / " + list.length + " " + t("catalogCount");
+    $("catalog-empty").hidden = visible.length > 0;
+    $("catalog-note").textContent =
+      (options.off
+        ? t("catalogOff") + " "
+        : options.dryRun
+          ? t("catalogDry") + " "
+          : "") + t("catalogHint");
+  }
   function render() {
     $("cloak").setAttribute("aria-pressed", String(mode === "cloak"));
     $("rewrite").setAttribute("aria-pressed", String(mode === "rewrite"));
@@ -314,6 +424,7 @@
     } catch (e) {
       error = e.message;
     }
+    drawCatalog(error ? null : options);
     if (error) {
       $("json").textContent = t(error);
       $("copy-json").disabled = true;
