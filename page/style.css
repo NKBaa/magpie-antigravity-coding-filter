@@ -53,6 +53,12 @@ header {
 header p {
   margin-bottom: 0;
 }
+.head-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
 .save-actions,
 .section-head {
   display: flex;
