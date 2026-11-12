@@ -1,111 +1,68 @@
-// app.js has never been run in a browser here, so this test runs it against a
-// small stand-in for the DOM and checks what it put on the page: the options as
-// JSON, the preview painted with the zero-width spaces marked, and the state
-// line saying it is read-only outside magpie. It catches the class of mistake a
-// static check cannot: a null element, a broken render path.
-import { expect, test } from "bun:test"
+import { test, expect } from "bun:test";
+import "../page/filter.js";
+import "../page/form.js";
+const M = globalThis.FilterForm;
 
-function element(id) {
-  return {
-    id,
-    value: "",
-    checked: false,
-    textContent: "",
-    innerHTML: "",
-    hidden: false,
-    disabled: false,
-    className: "",
-    type: "",
-    dataset: {},
-    lang: "",
-    setAttribute() {},
-    removeAttribute() {},
-    addEventListener() {},
-    append() {},
-    replaceChildren() {},
-    focus() {},
-    remove() {},
-    closest() {
-      return null
-    },
+test("documented mapping shapes load into editable rows without losing names", () => {
+  for (const customMappings of [
+    { Cursor: "Antigravity", Windsurf: "Example" },
+    "Cursor: Antigravity, Windsurf: Example",
+    ["Cursor: Antigravity", { Windsurf: "Example" }],
+    "Cursor: Antigravity\nWindsurf: Example",
+  ]) {
+    const { options, rows } = M.normalize({ customMappings });
+    expect(M.build(options, options, rows).customMappings).toEqual({
+      Cursor: "Antigravity",
+      Windsurf: "Example",
+    });
   }
-}
-
-const ids = [
-  "state",
-  "save",
-  "custom",
-  "custom-error",
-  "accounts",
-  "json",
-  "mode-hint",
-  "out",
-  "matches",
-  "matches-table",
-  "none",
-  "show-zw",
-  "sample",
-  "example",
-  "clear",
-  "reset",
-  "copy-json",
-  "copy-cmd",
-  "useDefaultKeywords",
-  "useModelKeywords",
-  "useAmbiguousKeywords",
-  "boundaries",
-  "protectCode",
-  "strictCase",
-  "dryRun",
-  "report",
-  "off",
-]
-const nodes = Object.fromEntries(ids.map((id) => [id, element(id)]))
-nodes["show-zw"].checked = true
-const radios = [element("mode-cloak"), element("mode-rewrite")]
-radios[0].value = "cloak"
-radios[0].checked = true
-radios[1].value = "rewrite"
-
-globalThis.document = {
-  documentElement: element("html"),
-  title: "",
-  body: { append() {} },
-  getElementById: (id) => nodes[id] ?? null,
-  querySelectorAll: (selector) => (selector.includes('name="mode"') ? radios : []),
-  querySelector: (selector) => (selector.includes(":checked") ? radios.find((r) => r.checked) : null),
-  createElement: (tag) => element(tag),
-  addEventListener() {},
-}
-globalThis.navigator = { language: "en", clipboard: { writeText: async () => {} } }
-globalThis.localStorage = {
-  store: new Map(),
-  getItem(key) {
-    return this.store.has(key) ? this.store.get(key) : null
-  },
-  setItem(key, value) {
-    this.store.set(key, value)
-  },
-}
-
-await import("../page/filter.js")
-await import("../page/app.js")
-await new Promise((resolve) => setTimeout(resolve, 50))
-
-test("the page renders its options and its preview without a browser", () => {
-  const options = JSON.parse(nodes.json.textContent)
-  expect(options.mode).toBe("cloak")
-  expect(options.useDefaultKeywords).toBe(true)
-  expect(options.boundaries).toBe(true)
-  expect(options.accounts).toEqual(["antigravity"])
-
-  expect(nodes.out.innerHTML).toContain('class="zw"')
-  expect(nodes.out.innerHTML).not.toContain("Windsurf")
-  expect(nodes.out.innerHTML).not.toContain("Chatbox")
-  expect(nodes["none"].hidden).toBe(true)
-
-  expect(nodes.state.dataset.kind).toBe("readonly")
-  expect(nodes.state.textContent).toContain("magpie")
-  expect(nodes["custom"].value).toBe("")
-  expect(nodes.accounts.value).toBe("antigravity")
-})
+});
+test("null exclusions, literal null strings, commas and colons round trip", () => {
+  const original = {
+    Windsurf: null,
+    "My: Agent": "null",
+    Example: "IDE, Inc.",
+  };
+  const { options, rows } = M.normalize({ customMappings: original });
+  expect(M.build(options, options, rows).customMappings).toEqual(original);
+});
+test("legacy options migrate without overriding them or dropping unrelated options", () => {
+  const { options, rows } = M.normalize({
+    use_default_keywords: false,
+    dry_run: true,
+    custom_mappings: { Cursor: "Example" },
+    extra: "keep",
+  });
+  const result = M.build(options, options, rows);
+  expect(result.useDefaultKeywords).toBe(false);
+  expect(result.dryRun).toBe(true);
+  expect(result.customMappings.Cursor).toBe("Example");
+  expect(result.extra).toBe("keep");
+  expect(result).not.toHaveProperty("custom_mappings");
+});
+test("invalid rows cannot be saved silently", () => {
+  expect(() => M.build({}, {}, [{ name: "", replacement: "Example" }])).toThrow(
+    "emptyName",
+  );
+  expect(() =>
+    M.build({}, {}, [
+      { name: "Cursor", replacement: "Example" },
+      { name: "cursor", replacement: "Example" },
+    ]),
+  ).toThrow("duplicateName");
+  expect(() => M.build({}, {}, [{ name: "Cursor", replacement: "" }])).toThrow(
+    "emptyReplacement",
+  );
+});
+test("outgoing preview matches disabled and dry-run behavior", () => {
+  const text = "You are Chatbox.";
+  expect(M.preview(text, { off: true }).text).toBe(text);
+  expect(M.preview(text, { off: true }).matches).toEqual([]);
+  expect(M.preview(text, { dryRun: true }).text).toBe(text);
+  expect(M.preview(text, { dryRun: true }).matches).toEqual([
+    { name: "Chatbox", count: 1 },
+  ]);
+  expect(M.preview(text, { mode: "rewrite" }).text).toBe(
+    "You are Antigravity.",
+  );
+});

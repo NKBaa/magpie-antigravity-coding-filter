@@ -1,95 +1,181 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Antigravity coding filter</title>
-<link rel="stylesheet" href="style.css">
-<script src="_magpie/bridge.js"></script>
-<script src="filter.js"></script>
-<script src="app.js" defer></script>
-</head>
-<body>
-<header>
-  <div>
-    <h1 data-t="title">Antigravity coding filter</h1>
-    <p><small class="muted" data-t="sub">Another agent's name, rewritten or cloaked, only on the request an Antigravity account is sent.</small></p>
-  </div>
-  <div class="head-actions">
-    <small class="muted" id="state"></small>
-    <button type="button" id="save" data-t="save">Save</button>
-  </div>
-</header>
-
-<main>
-  <section aria-labelledby="options-h">
-    <h2 id="options-h" data-t="options">Options</h2>
-
-    <fieldset>
-      <legend data-t="mode">Mode</legend>
-      <label><input type="radio" name="mode" value="cloak"><span data-t="modeCloak">Cloak</span></label>
-      <label><input type="radio" name="mode" value="rewrite"><span data-t="modeRewrite">Rewrite</span></label>
-      <p><small class="muted" id="mode-hint"></small></p>
-    </fieldset>
-
-    <fieldset class="switches">
-      <legend data-t="presets">Presets and matching</legend>
-      <label><input type="checkbox" id="useDefaultKeywords"><span data-t="useDefaultKeywords">Default preset</span></label>
-      <label><input type="checkbox" id="useModelKeywords"><span data-t="useModelKeywords">Model names</span></label>
-      <label><input type="checkbox" id="useAmbiguousKeywords"><span data-t="useAmbiguousKeywords">Ambiguous names</span></label>
-      <label><input type="checkbox" id="boundaries"><span data-t="boundaries">Whole words only</span></label>
-      <label><input type="checkbox" id="protectCode"><span data-t="protectCode">Protect code</span></label>
-      <label><input type="checkbox" id="strictCase"><span data-t="strictCase">Match case for ambiguous names</span></label>
-      <label><input type="checkbox" id="dryRun"><span data-t="dryRun">Dry run</span></label>
-      <label><input type="checkbox" id="report"><span data-t="report">Report to ctx.state</span></label>
-      <label><input type="checkbox" id="off"><span data-t="off">Off</span></label>
-    </fieldset>
-
-    <label class="field">
-      <span data-t="accounts">Accounts</span>
-      <input id="accounts" type="text" placeholder="antigravity" spellcheck="false" autocomplete="off">
-      <small class="muted" data-t="accountsHint">Comma-separated subscription kinds, compared ignoring case.</small>
-    </label>
-
-    <label class="field">
-      <span data-t="custom">customMappings</span>
-      <textarea id="custom" rows="5" spellcheck="false" placeholder="Cursor: Antigravity&#10;My Agent: Antigravity"></textarea>
-      <small class="muted" data-t="customHint">One per line, name then replacement. A line with only a name is skipped; write null as the replacement to remove a preset entry.</small>
-      <small id="custom-error" hidden></small>
-    </label>
-
-    <div class="actions">
-      <button type="button" id="reset" data-t="reset">Reset</button>
-      <button type="button" id="copy-json" data-t="copyJson">Copy JSON</button>
-      <button type="button" id="copy-cmd" data-t="copyCommand">Copy command</button>
-    </div>
-    <pre id="json" aria-live="polite"></pre>
-  </section>
-
-  <section aria-labelledby="preview-h">
-    <h2 id="preview-h" data-t="preview">Preview</h2>
-    <p><small class="muted" data-t="previewHint">Paste the system prompt an agent sends. Nothing here is sent anywhere: this box runs the same matcher the middleware does.</small></p>
-    <textarea id="sample" rows="7" spellcheck="false" placeholder="You are Cursor, an AI coding assistant."></textarea>
-    <div class="actions">
-      <button type="button" id="example" data-t="example">Load an example</button>
-      <button type="button" id="clear" data-t="clear">Clear</button>
-      <label class="inline"><input type="checkbox" id="show-zw" checked><span data-t="showZw">Show zero-width spaces</span></label>
-    </div>
-
-    <h3 data-t="sent">What Antigravity would be sent</h3>
-    <pre id="out"></pre>
-
-    <h3 data-t="matches">Matched</h3>
-    <table id="matches-table">
-      <thead><tr><th data-t="name">Name</th><th class="n" data-t="times">Times</th></tr></thead>
-      <tbody id="matches"></tbody>
-    </table>
-    <p id="none" hidden><small class="muted" data-t="none">No name matched, so the request goes out as it is.</small></p>
-  </section>
-</main>
-
-<footer>
-  <p><small class="muted" data-t="footer">Changing what Google is sent may be against Antigravity's terms, and an account can be banned for it.</small></p>
-</footer>
-</body>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Antigravity 过滤设置</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="_magpie/bridge.js"></script>
+    <script src="filter.js"></script>
+    <script src="form.js"></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1 data-t="title">过滤设置</h1>
+        <p class="muted" data-t="subtitle">
+          只处理发给 Antigravity 的系统提示词，保护路径和代码。
+        </p>
+      </div>
+      <div class="save-actions">
+        <span id="state" role="status" aria-live="polite"></span
+        ><button id="save" type="button" data-t="save">保存更改</button>
+      </div>
+    </header>
+    <p id="message" role="alert" hidden></p>
+    <main>
+      <div class="settings">
+        <section aria-labelledby="basic-title">
+          <h2 id="basic-title" data-t="basic">基本设置</h2>
+          <label class="setting"
+            ><span
+              ><strong data-t="enabled">启用过滤</strong
+              ><small class="muted" data-t="enabledHint"
+                >对 Antigravity 账号生效</small
+              ></span
+            ><input id="enabled" type="checkbox" role="switch"
+          /></label>
+          <div class="setting">
+            <span
+              ><strong data-t="mode">处理方式</strong
+              ><small class="muted" id="mode-hint"></small
+            ></span>
+            <div class="mode-buttons">
+              <button
+                id="cloak"
+                type="button"
+                aria-pressed="true"
+                data-t="cloak"
+              >
+                保留原文</button
+              ><button
+                id="rewrite"
+                type="button"
+                aria-pressed="false"
+                data-t="rewrite"
+              >
+                替换名字
+              </button>
+            </div>
+          </div>
+          <label class="setting"
+            ><span
+              ><strong data-t="preset">常用名称</strong
+              ><small class="muted" data-t="presetHint"
+                >包含 Chatbox、Windsurf 等 47 个名称</small
+              ></span
+            ><input id="useDefaultKeywords" type="checkbox" role="switch"
+          /></label>
+          <label class="setting"
+            ><span
+              ><strong data-t="models">同时处理模型名称</strong
+              ><small class="muted" data-t="modelsHint"
+                >例如 Claude Sonnet、GPT-5；按需开启</small
+              ></span
+            ><input id="useModelKeywords" type="checkbox" role="switch"
+          /></label>
+        </section>
+        <section aria-labelledby="rules-title">
+          <div class="section-head">
+            <div>
+              <h2 id="rules-title" data-t="rules">自定义词条</h2>
+              <p class="muted" data-t="rulesHint">
+                按需添加 Cursor、Codex 等名称，无需编写配置。
+              </p>
+            </div>
+            <button id="add-rule" type="button" data-t="add">添加词条</button>
+          </div>
+          <div id="quick-add" class="quick-add" aria-label="Quick add"></div>
+          <p id="empty-rules" class="muted" data-t="emptyRules">
+            还没有自定义词条。上方名称可一键添加。
+          </p>
+          <div id="rules"></div>
+        </section>
+        <details id="advanced">
+          <summary data-t="advanced">高级设置</summary>
+          <div class="advanced-body">
+            <label class="setting"
+              ><span data-t="boundaries">只匹配完整名称</span
+              ><input id="boundaries" type="checkbox"
+            /></label>
+            <label class="setting"
+              ><span data-t="protectCode">保护代码块和行内代码</span
+              ><input id="protectCode" type="checkbox"
+            /></label>
+            <label class="setting"
+              ><span data-t="strictCase">歧义词区分大小写</span
+              ><input id="strictCase" type="checkbox"
+            /></label>
+            <label class="setting"
+              ><span data-t="ambiguous"
+                >启用全部 11 个歧义词（可能误匹配普通单词）</span
+              ><input id="useAmbiguousKeywords" type="checkbox"
+            /></label>
+            <label class="setting"
+              ><span data-t="dryRun">仅检查，请求保持原样</span
+              ><input id="dryRun" type="checkbox"
+            /></label>
+            <label class="setting"
+              ><span data-t="report">记录命中信息到请求状态</span
+              ><input id="report" type="checkbox"
+            /></label>
+            <label class="field"
+              ><span data-t="accounts">账号类型（逗号分隔）</span
+              ><input id="accounts" type="text" spellcheck="false"
+            /></label>
+            <details>
+              <summary data-t="config">查看配置 JSON</summary>
+              <pre id="json"></pre>
+              <button id="copy-json" type="button" data-t="copy">
+                复制 JSON
+              </button>
+            </details>
+          </div>
+        </details>
+      </div>
+      <aside aria-labelledby="preview-title">
+        <section class="preview">
+          <div class="section-head">
+            <h2 id="preview-title" data-t="preview">试一下效果</h2>
+            <button id="example" type="button" data-t="example">
+              填入示例
+            </button>
+          </div>
+          <p class="muted" data-t="previewHint">
+            粘贴系统提示词即可预览。内容只在本页处理，不会发送请求。
+          </p>
+          <label class="field"
+            ><span data-t="input">原文</span
+            ><textarea
+              id="sample"
+              rows="7"
+              spellcheck="false"
+              placeholder="You are Chatbox, an AI assistant."
+            ></textarea>
+          </label>
+          <div class="section-head">
+            <strong data-t="output">发出的内容</strong
+            ><label
+              ><input id="show-zw" type="checkbox" checked /><span
+                data-t="showZw"
+                >标出零宽字符</span
+              ></label
+            >
+          </div>
+          <pre id="out"></pre>
+          <p
+            id="preview-status"
+            role="status"
+            aria-live="polite"
+            class="muted"
+          ></p>
+          <div id="matches"></div>
+          <p class="muted preview-note" data-t="draftNote">
+            预览使用当前设置；保存后才会影响网关请求。
+          </p>
+        </section>
+      </aside>
+    </main>
+  </body>
 </html>

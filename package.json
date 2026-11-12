@@ -1,6 +1,6 @@
 {
   "name": "magpie-antigravity-coding-filter",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "magpie gateway middleware: another coding agent's name in the system prompt is rewritten or cloaked, only on the request an Antigravity account is sent, with a page to set it up and see it work",
   "type": "module",
   "files": ["antigravity-coding-filter.middleware.js", "page", "README.md"],

@@ -122,12 +122,14 @@ It follows magpie's theme, light and dark ([dark](docs/screenshot-dark.png)), an
 
 The page draws with magpie's own sheet, not one of its own: the bridge adds a stylesheet of no weight (`:where()`) for the font, colours, headings, buttons, fields and tables, and the theme's colours arrive as the `--magpie-*` variables. So `page/style.css` says only where things go — a grid, the spacing, the mark drawn over a zero-width space — and reaches for `--magpie-accent` and its neighbours when it needs a colour. Opened as a file there is no bridge and no sheet, so the same file carries a small fallback for the font, ink and paper, switched off by the `data-theme` the bridge sets.
 
-- **The options as a form** — mode, the four preset switches, the two matching switches, accounts, `customMappings` — with the JSON they become, a `Copy JSON` and a `Copy command` button, and the command it copies: `magpie plugin options antigravity-coding-filter '<json>'`.
-- **A preview.** Paste the system prompt an agent sends and the box shows what Antigravity would be sent, with each zero-width space marked (switch the marks off to read it as the model does), the names that matched and how often, or that nothing did.
+- **Common settings first.** Enable filtering, choose “Keep wording” or “Replace names”, and optionally include model names. Advanced matching switches, account types and JSON stay folded away.
+- **Editable name rows.** Add the eleven ambiguous names individually with quick-add buttons, enter any other name, delete a row, or exclude a built-in name. No mapping syntax is needed. Replacement fields appear in rewrite mode.
+- **A truthful preview.** Paste a system prompt or load the Chatbox example. The outgoing text and match counts update immediately; off and check-only modes preserve the original text. The preview uses the current draft, while gateway requests use the saved settings.
+- **Explicit saves.** Save is enabled only after a valid change. The page reports failed reads and writes, preserves unrelated options, and converts legacy mapping formats into rows without dropping names. `Ctrl/Cmd+S` also saves.
 
-It reads and writes the same options object the middleware reads as `ctx.options`, through magpie's page bridge, so what you save is what the next request uses. Opened as a plain file (`file://…/page/index.html`) it still works as a playground: no bridge, nothing saved, and the state line says so.
+The page reads and writes the middleware's own options through the magpie bridge. As a plain file it saves only in browser storage, clearly labelled on the page; it does not change the gateway.
 
-The page carries its own copy of the matcher in `page/filter.js`, because a page in magpie's window runs in a sandboxed frame and cannot import the middleware. `test/page.test.mjs` compares the two — the preset lists, and the output and match counts for every system prompt in `cases.json` under nine option sets — so a change made in one and not the other fails the test instead of shipping a preview that lies. `test/page-smoke.test.mjs` runs the page's own script against a stand-in DOM, which is how a state line that always read "Unsaved" was caught.
+`test/page.test.mjs` compares the preview matcher with the middleware under ten option sets. Form tests check legacy configurations, exclusions, duplicates, and off/check-only previews. Run `node test/browser-ui.mjs` for real Chrome interaction tests covering editing, saving, reloads, failures and narrow layouts (`CHROME_BIN` selects Chrome on other machines). The browser test uses the official base stylesheet and a controlled bridge stand-in; it does not claim a live magpie end-to-end test.
 
 ## Chatbox
 
@@ -166,7 +168,7 @@ To find it, turn `report` on (and `dryRun` on, if you want the request to go out
 bun test
 ```
 
-`cases.json` runs the hooks the way magpie's gateway calls them, and the same cases run in magpie's own JavaScript engine (moejs). `test/middleware.mjs` is copied from [magpie-community/plugins](https://github.com/magpie-community/plugins) (MIT) so the cases run on their own. `test/features.test.mjs` covers what a case cannot express: `ctx.state`, `dryRun`, a second pass being a no-op, the preset's two halves and the hook's budget. `test/page.test.mjs` holds the page's copy of the matcher to the middleware's, `test/page-files.test.mjs` checks the page runs no inline script and looks up only ids that exist, and `test/page-smoke.test.mjs` runs the page's script against a stand-in DOM.
+`cases.json` runs the hooks the way magpie's gateway calls them, and the same cases run in magpie's own JavaScript engine (moejs). `test/middleware.mjs` is copied from [magpie-community/plugins](https://github.com/magpie-community/plugins) (MIT) so the cases run on their own. `test/features.test.mjs` covers what a case cannot express: `ctx.state`, `dryRun`, a second pass being a no-op, the preset's two halves and the hook's budget. `test/page.test.mjs` holds the page's copy of the matcher to the middleware's, `test/page-files.test.mjs` checks the page runs no inline script and looks up only ids that exist, and `test/page-smoke.test.mjs` checks form conversions and preview behavior. `node test/browser-ui.mjs` exercises the actual page in Chrome with a controlled bridge.
 
 中文：把 CLIProxyAPI 的 antigravity-coding-filter 移植到 magpie 的 gateway middleware。只在发给 Antigravity 账号的那次尝试上、只改 system / developer 提示词：默认 `cloak`（在名字第一、第二个字母后各插一个零宽空格，模型照读，字面串变了），可选 `rewrite`（改成 `Antigravity`）；上游的 `block` 在 magpie 里做不到——`onProvider` 阶段请求已经路由，`ctx.reject` 无效，要拦截请配合 `middleware-block-patterns`。URL、路径、`mcp__`、`.codex`、`*.md` 里的名字不动。
 
@@ -174,6 +176,6 @@ bun test
 
 这个分支另外加了几项（都可关掉）：`boundaries`（默认开）只匹配整词，`Traefik`、`decline`、`Kirov`、`raider` 不再被当成 `Trae`、`Cline`、`Kiro`、`Aider` 改坏；`protectCode`（默认开）代码块和行内代码里的名字不动，免得把示例里的字符串字面量改了；`useModelKeywords`（默认关）额外匹配 `Claude Sonnet`、`GPT-5` 这类模型名；`dryRun` / `report` 只算不改，把命中的名字和次数写到 `ctx.state["antigravity-coding-filter"]`，方便排查“429 又回来了”。`customMappings` 里用 `null` 可以删掉某条内置词，多行字符串则允许映射值里带逗号。另外把保护区间合并、按游标遍历，272 KB / 5000 个保护区间的耗时从 316 ms 降到约 9 ms（钩子预算 250 ms）；`accounts` 改成忽略大小写比较，`off: "false"` 不再被当成关闭，映射成自己名字的条目不记为改动。
 
-还带了一个界面：装好后在 magpie 侧栏 Plugins 里多一页「Antigravity 编码过滤」，左边是选项表单（生成 JSON，可一键复制 `magpie plugin options` 命令），右边把 Agent 的 system 提示词贴进去，直接看到实际会发给 Antigravity 的内容（零宽字符会标出来）、命中了哪些名字、各几次。它通过 magpie 的 page bridge 读写同一份 options，存的就是下一次请求生效的；直接用浏览器打开 `page/index.html` 也能当沙盒用，只是不保存。页面里的匹配逻辑是中间件的副本（page 在沙箱 iframe 里，import 不了中间件），`test/page.test.mjs` 会拿 cases.json 逐条比对两边的输出，改了一边忘了另一边就会失败。
+界面默认只展示基本设置、自定义词条和效果预览，JSON、账号类型与调试开关收在「高级设置」里。Cursor、Codex 等 11 个歧义词可以逐个点选添加，也可以新增任意名称、删除词条或设为排除。仅在「替换名字」模式显示替换文字输入框。粘贴 system 提示词或点击「填入示例」，即可看到当前草稿的输出和命中次数；关闭过滤或开启「仅检查」时，输出保持原样。有效修改后「保存更改」才可用，支持 Ctrl/Cmd+S；读取失败时禁止覆盖保存，保存失败时保留草稿。通过 magpie bridge 保存会更新插件配置；直接打开页面仅保存到浏览器。浏览器自动化验证了编辑、保存、刷新、读写失败与窄屏布局，使用官方样式和 bridge 模拟器，尚未连接真实 magpie 做端到端测试。
 
 这样做可能违反 Antigravity 的条款，账号有被封的风险。
