@@ -120,6 +120,8 @@ The package also puts a page in magpie's window, under **Plugins** in the sideba
 
 It follows magpie's theme, light and dark ([dark](docs/screenshot-dark.png)), and reflows to one column when the window is narrow.
 
+The page draws with magpie's own sheet, not one of its own: the bridge adds a stylesheet of no weight (`:where()`) for the font, colours, headings, buttons, fields and tables, and the theme's colours arrive as the `--magpie-*` variables. So `page/style.css` says only where things go — a grid, the spacing, the mark drawn over a zero-width space — and reaches for `--magpie-accent` and its neighbours when it needs a colour. Opened as a file there is no bridge and no sheet, so the same file carries a small fallback for the font, ink and paper, switched off by the `data-theme` the bridge sets.
+
 - **The options as a form** — mode, the four preset switches, the two matching switches, accounts, `customMappings` — with the JSON they become, a `Copy JSON` and a `Copy command` button, and the command it copies: `magpie plugin options antigravity-coding-filter '<json>'`.
 - **A preview.** Paste the system prompt an agent sends and the box shows what Antigravity would be sent, with each zero-width space marked (switch the marks off to read it as the model does), the names that matched and how often, or that nothing did.
 

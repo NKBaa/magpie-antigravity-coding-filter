@@ -82,6 +82,9 @@
       showZw: "Show zero-width spaces",
       sent: "What Antigravity would be sent",
       matches: "Matched",
+      name: "Name",
+      times: "Times",
+      presets: "Presets and matching",
       none: "No name matched, so the request goes out as it is.",
       footer: "Changing what Google is sent may be against Antigravity's terms, and an account can be banned for it.",
       saved: "Saved",
@@ -126,6 +129,9 @@
       showZw: "显示零宽字符",
       sent: "实际发给 Antigravity 的内容",
       matches: "命中",
+      name: "名字",
+      times: "次数",
+      presets: "词表与匹配",
       none: "没有命中任何名字，请求原样发出。",
       footer: "改动发给 Google 的内容可能违反 Antigravity 的条款，账号有被封的风险。",
       saved: "已保存",
@@ -234,7 +240,7 @@
     if (!$("show-zw").checked) return escaped
     return escaped
       .split(F.ZWSP)
-      .join('<span class="zw" title="U+200B zero-width space">·</span>')
+      .join('<mark class="zw" title="U+200B zero-width space">·</mark>')
   }
 
   function state(kind, message) {
@@ -258,18 +264,20 @@
     const sample = $("sample").value
     const result = F.preview(sample, options)
     $("out").innerHTML = sample ? paint(result.text) : ""
-    const items = result.matches.map((match) => {
-      const li = document.createElement("li")
-      const name = document.createElement("code")
-      name.textContent = match.name
-      const count = document.createElement("span")
-      count.className = "n"
-      count.textContent = `×${match.count}`
-      li.append(name, count)
-      return li
+    const rows = result.matches.map((match) => {
+      const tr = document.createElement("tr")
+      const cell = document.createElement("td")
+      const code = document.createElement("code")
+      code.textContent = match.name
+      cell.append(code)
+      const count = document.createElement("td")
+      count.textContent = String(match.count)
+      tr.append(cell, count)
+      return tr
     })
-    $("matches").replaceChildren(...items)
-    $("none").hidden = !sample || result.matches.length > 0
+    $("matches").replaceChildren(...rows)
+    $("matches-table").hidden = rows.length === 0
+    $("none").hidden = !sample || rows.length > 0
     $("save").disabled = busy
 
     if (!baseline) return
@@ -365,7 +373,7 @@
     render()
   })
 
-  for (const panel of document.querySelectorAll("main .panel")) {
+  for (const panel of document.querySelectorAll("main section")) {
     panel.addEventListener("input", render)
     panel.addEventListener("change", render)
   }

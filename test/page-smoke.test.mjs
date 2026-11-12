@@ -41,6 +41,7 @@ const ids = [
   "mode-hint",
   "out",
   "matches",
+  "matches-table",
   "none",
   "show-zw",
   "sample",
