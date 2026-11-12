@@ -79,6 +79,10 @@
       reload: "重新加载",
       excluded: "将保留此名称，不参与处理",
       pending: "设置尚未读取完成。",
+      standalone: "预览模式；更改可保存到本浏览器",
+      selectCopy: "已选中 JSON，请按 Ctrl/Cmd+C 复制。",
+      conflict:
+        "其他窗口修改了同一项配置。草稿已保留，请复制 JSON 备份并重新打开页面后合并。",
     },
     en: {
       title: "Filter settings",
@@ -148,6 +152,10 @@
       reload: "Reload",
       excluded: "This name will be preserved",
       pending: "Settings are still loading.",
+      standalone: "Preview mode; changes can be saved in this browser",
+      selectCopy: "JSON selected. Press Ctrl/Cmd+C to copy.",
+      conflict:
+        "Another window changed the same setting. Your draft is preserved. Copy the JSON as a backup, reopen this page and merge the changes.",
     },
   };
   let lang = (navigator.language || "zh").startsWith("zh") ? "zh" : "en",
@@ -260,6 +268,7 @@
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = `+ ${name}`;
+        b.dataset.name = name;
         b.disabled = rows.some(
           (row) => row.name.toLowerCase() === name.toLowerCase(),
         );
@@ -286,6 +295,17 @@
     $("mode-hint").textContent = t(
       mode === "cloak" ? "cloakHint" : "rewriteHint",
     );
+    $("rules")
+      .querySelectorAll("label:nth-child(2)")
+      .forEach((label) => (label.hidden = mode !== "rewrite"));
+    $("quick-add")
+      .querySelectorAll("button")
+      .forEach((button) => {
+        button.disabled = rows.some(
+          (row) =>
+            row.name.trim().toLowerCase() === button.dataset.name.toLowerCase(),
+        );
+      });
     let options, error;
     try {
       options = collect();
@@ -293,6 +313,8 @@
       error = e.message;
     }
     if (error) {
+      $("json").textContent = t(error);
+      $("copy-json").disabled = true;
       $("state").textContent = t(error);
       $("save").disabled = true;
       $("preview-status").textContent = t("invalid");
@@ -300,6 +322,7 @@
       $("matches").replaceChildren();
       return;
     }
+    $("copy-json").disabled = false;
     $("json").textContent = JSON.stringify(options, null, 2);
     const dirty = JSON.stringify(options) !== baseline;
     $("save").disabled = !ready || busy || !dirty;
@@ -311,7 +334,7 @@
           ? t("dirty")
           : bridge
             ? t("saved")
-            : t("local");
+            : t(loadedLocal ? "local" : "standalone");
     $("state").dataset.dirty = String(dirty);
     const text = $("sample").value,
       result = M.preview(text, options);
@@ -353,6 +376,7 @@
     let candidate;
     try {
       candidate = collect();
+      if (JSON.stringify(candidate) === baseline) return;
     } catch (e) {
       message(t(e.message));
       return;
@@ -372,7 +396,7 @@
         const wait = Math.max(0, 1100 - (Date.now() - lastWrite));
         if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
         const latest = await bridge.options.get();
-        candidate = M.build(latest || {}, values(), rows);
+        candidate = M.merge(base, latest || {}, candidate);
         await bridge.options.set(candidate);
         lastWrite = Date.now();
         const after = await bridge.options.get();
@@ -384,7 +408,13 @@
       }
       baseline = JSON.stringify(collect());
     } catch (e) {
-      message(bridge ? t("saveFailed") + e.message : t("localFailed"));
+      message(
+        e.message === "conflict"
+          ? t("conflict")
+          : bridge
+            ? t("saveFailed") + e.message
+            : t("localFailed"),
+      );
     } finally {
       busy = false;
       controls.forEach((el, i) => {
@@ -419,24 +449,26 @@
       await navigator.clipboard.writeText($("json").textContent);
       message(t("copied"));
     } catch {
-      message(t("copyFailed"));
+      const json = $("json");
+      for (
+        let parent = json.parentElement;
+        parent;
+        parent = parent.parentElement
+      ) {
+        if (parent.tagName === "DETAILS") parent.open = true;
+      }
+      const range = document.createRange();
+      range.selectNodeContents(json);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      message(t("selectCopy"));
     }
   });
   document.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === "s") {
       event.preventDefault();
       save();
-    }
-  });
-  window.addEventListener("beforeunload", (event) => {
-    try {
-      if (ready && JSON.stringify(collect()) !== baseline) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    } catch {
-      event.preventDefault();
-      event.returnValue = "";
     }
   });
   async function start() {

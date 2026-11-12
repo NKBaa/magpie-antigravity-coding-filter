@@ -54,6 +54,52 @@ test("invalid rows cannot be saved silently", () => {
     "emptyReplacement",
   );
 });
+test("concurrent additions and independent settings are preserved", () => {
+  const base = { customMappings: { Cursor: "Antigravity" }, mode: "cloak" };
+  const latest = {
+    customMappings: { Cursor: "Antigravity", Remote: "Example" },
+    mode: "rewrite",
+    extra: "new",
+  };
+  const draft = {
+    customMappings: { Cursor: "Antigravity", Local: "Example" },
+    mode: "cloak",
+    useModelKeywords: true,
+  };
+  const result = M.merge(base, latest, draft);
+  expect(result.customMappings).toEqual({
+    Cursor: "Antigravity",
+    Remote: "Example",
+    Local: "Example",
+  });
+  expect(result.mode).toBe("rewrite");
+  expect(result.useModelKeywords).toBe(true);
+  expect(result.extra).toBe("new");
+});
+test("conflicting edits reject the save, including edit/delete conflicts", () => {
+  expect(() =>
+    M.merge(
+      { mode: "cloak" },
+      { mode: "rewrite" },
+      { mode: "cloak", off: true },
+    ),
+  ).not.toThrow();
+  expect(() =>
+    M.merge(
+      { customMappings: { Cursor: "A" } },
+      { customMappings: { Cursor: "B" } },
+      { customMappings: { Cursor: "C" } },
+    ),
+  ).toThrow("conflict");
+  expect(() =>
+    M.merge(
+      { customMappings: { Cursor: "A" } },
+      { customMappings: { Cursor: "B" } },
+      { customMappings: {} },
+    ),
+  ).toThrow("conflict");
+});
+
 test("outgoing preview matches disabled and dry-run behavior", () => {
   const text = "You are Chatbox.";
   expect(M.preview(text, { off: true }).text).toBe(text);

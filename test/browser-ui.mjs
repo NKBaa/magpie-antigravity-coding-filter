@@ -186,12 +186,35 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
         false,
       );
-      await evaluate(`document.getElementById('save').click()`);
+      await evaluate(
+        `savedOptions.customMappings={Cursor:'Antigravity','My Agent':'Example','Remote Agent':'Example'};document.getElementById('save').click()`,
+      );
       await wait(`document.getElementById('state').textContent==='已保存'`);
       expect(await evaluate(`savedOptions.customMappings['New Agent']`)).toBe(
         "Antigravity",
       );
+      expect(
+        await evaluate(`savedOptions.customMappings['Remote Agent']`),
+      ).toBe("Example");
       expect(await evaluate(`savedOptions.extra`)).toBe("preserved");
+      const writes = await evaluate("window.writeCount");
+      await evaluate(
+        `document.dispatchEvent(new KeyboardEvent('keydown',{key:'s',ctrlKey:true,bubbles:true,cancelable:true}))`,
+      );
+      await delay(100);
+      expect(await evaluate("window.writeCount")).toBe(writes);
+      await evaluate(
+        `Object.defineProperty(navigator,'clipboard',{value:{writeText:async()=>{throw Error('Clipboard denied')}},configurable:true});document.getElementById('copy-json').click()`,
+      );
+      await wait(
+        `document.getElementById('message').textContent.includes('Ctrl/Cmd+C')`,
+      );
+      expect(await evaluate(`window.getSelection().toString()`)).toBe(
+        await evaluate(`document.getElementById('json').textContent`),
+      );
+      expect(await evaluate(`document.getElementById('advanced').open`)).toBe(
+        true,
+      );
       expect(
         await evaluate(`Object.hasOwn(savedOptions,'custom_mappings')`),
       ).toBe(false);
@@ -206,7 +229,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       );
       expect(
         await evaluate(`document.querySelectorAll('#rules .rule').length`),
-      ).toBe(3);
+      ).toBe(4);
       await evaluate(
         `document.querySelectorAll('#rules .rule button')[2].click();window.failSet=true;document.getElementById('save').click()`,
       );

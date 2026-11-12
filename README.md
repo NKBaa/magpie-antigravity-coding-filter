@@ -125,7 +125,8 @@ The page draws with magpie's own sheet, not one of its own: the bridge adds a st
 - **Common settings first.** Enable filtering, choose “Keep wording” or “Replace names”, and optionally include model names. Advanced matching switches, account types and JSON stay folded away.
 - **Editable name rows.** Add the eleven ambiguous names individually with quick-add buttons, enter any other name, delete a row, or exclude a built-in name. No mapping syntax is needed. Replacement fields appear in rewrite mode.
 - **A truthful preview.** Paste a system prompt or load the Chatbox example. The outgoing text and match counts update immediately; off and check-only modes preserve the original text. The preview uses the current draft, while gateway requests use the saved settings.
-- **Explicit saves.** Save is enabled only after a valid change. The page reports failed reads and writes, preserves unrelated options, and converts legacy mapping formats into rows without dropping names. `Ctrl/Cmd+S` also saves.
+- **Explicit saves.** Save is enabled only after a valid change. The page reports failed reads and writes, preserves unrelated options, and converts legacy mapping formats into rows without dropping names. `Ctrl/Cmd+S` also saves and does nothing when unchanged. Saves merge independent edits from other windows; conflicting changes to the same setting or name keep the draft unsaved with an explanation.
+- **Sandbox-compatible copying.** If clipboard access is unavailable, Copy JSON expands the configuration and selects its contents for Ctrl/Cmd+C.
 
 The page reads and writes the middleware's own options through the magpie bridge. As a plain file it saves only in browser storage, clearly labelled on the page; it does not change the gateway.
 

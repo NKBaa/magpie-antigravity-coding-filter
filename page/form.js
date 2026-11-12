@@ -117,5 +117,42 @@
           : "unchanged",
     };
   }
-  globalThis.FilterForm = { defaults, normalize, build, preview };
+  // Three-way merge: untouched fields use the latest saved value. Concurrent
+  // edits to the same field/name must agree, otherwise the draft stays unsaved.
+  function merge(base, latest, draft) {
+    const canonical = (value) => {
+      const { options, rows } = normalize(value);
+      return build(options, options, rows);
+    };
+    const before = canonical(base),
+      theirs = canonical(latest),
+      ours = canonical(draft);
+    const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const pick = (b, l, d) => {
+      if (equal(b, d)) return l;
+      if (!equal(b, l) && !equal(l, d)) throw new Error("conflict");
+      return d;
+    };
+    const result = { ...latest };
+    for (const key of Object.keys(defaults)) {
+      if (key !== "customMappings")
+        result[key] = pick(before[key], theirs[key], ours[key]);
+    }
+    const entries = (value) =>
+      new Map(
+        Object.entries(value).map((entry) => [entry[0].toLowerCase(), entry]),
+      );
+    const b = entries(before.customMappings),
+      l = entries(theirs.customMappings),
+      d = entries(ours.customMappings);
+    const custom = Object.create(null);
+    for (const key of new Set([...b.keys(), ...d.keys(), ...l.keys()])) {
+      const chosen = pick(b.get(key), l.get(key), d.get(key));
+      if (chosen) custom[chosen[0]] = chosen[1];
+    }
+    result.customMappings = custom;
+    for (const alias of Object.keys(aliases)) delete result[alias];
+    return result;
+  }
+  globalThis.FilterForm = { defaults, normalize, build, preview, merge };
 })();
