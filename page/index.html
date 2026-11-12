@@ -85,6 +85,42 @@
             <button id="add-rule" type="button" data-t="add">新增规则</button>
             <small id="catalog-count" class="muted" aria-live="polite"></small>
           </div>
+          <fieldset id="rule-editor" hidden>
+            <legend id="editor-title"></legend>
+            <div class="editor-grid">
+              <label
+                ><span data-t="name">要匹配的名称</span
+                ><input
+                  id="editor-name"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+              /></label>
+              <label
+                ><span data-t="replacement">替换为</span
+                ><input
+                  id="editor-replacement"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+              /></label>
+              <label class="editor-exclude"
+                ><input id="editor-exclude" type="checkbox" /><span
+                  data-t="exclude"
+                  >排除此词</span
+                ></label
+              >
+            </div>
+            <p id="editor-note" class="muted"></p>
+            <p id="editor-error" role="alert" hidden></p>
+            <div class="editor-actions">
+              <button id="editor-apply" type="button" data-t="applyRule">
+                应用到列表</button
+              ><button id="editor-cancel" type="button" data-t="cancelRule">
+                取消
+              </button>
+            </div>
+          </fieldset>
           <div
             id="catalog-groups"
             class="catalog-groups"
@@ -100,38 +136,6 @@
               spellcheck="false"
           /></label>
           <p id="catalog-note" class="muted"></p>
-          <fieldset id="rule-editor" hidden>
-            <legend id="editor-title"></legend>
-            <p id="editor-note" class="muted"></p>
-            <label class="field"
-              ><span data-t="name">要匹配的名称</span
-              ><input
-                id="editor-name"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-            /></label>
-            <label class="field"
-              ><span data-t="replacement">替换为</span
-              ><input
-                id="editor-replacement"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-            /></label>
-            <label class="editor-exclude"
-              ><span data-t="exclude">排除此词</span
-              ><input id="editor-exclude" type="checkbox"
-            /></label>
-            <p id="editor-error" role="alert" hidden></p>
-            <div class="editor-actions">
-              <button id="editor-apply" type="button" data-t="applyRule">
-                应用到列表</button
-              ><button id="editor-cancel" type="button" data-t="cancelRule">
-                取消
-              </button>
-            </div>
-          </fieldset>
           <div
             class="catalog-table"
             tabindex="0"
