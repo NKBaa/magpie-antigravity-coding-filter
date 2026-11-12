@@ -1,6 +1,7 @@
 [
   {
     "name": "Anthropic: a string system, cloaked on Antigravity; the user's turn is not",
+    "options": { "useAmbiguousKeywords": true },
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "request": { "model": "m", "system": "You are Cursor, an AI coding assistant.", "messages": [{ "role": "user", "content": "Cursor is great" }] },
     "expect_request": { "model": "m", "system": "You are C\u200bu\u200brsor, an AI coding assistant.", "messages": [{ "role": "user", "content": "Cursor is great" }] }
@@ -23,6 +24,7 @@
   },
   {
     "name": "Chat: system and developer messages, not the user's",
+    "options": { "useAmbiguousKeywords": true },
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "ctx": { "protocol": "chat" },
     "request": {
@@ -44,6 +46,7 @@
   },
   {
     "name": "Responses: instructions and a developer input item",
+    "options": { "useAmbiguousKeywords": true },
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "ctx": { "protocol": "responses" },
     "request": {
@@ -65,6 +68,7 @@
   },
   {
     "name": "Gemini: systemInstruction",
+    "options": { "useAmbiguousKeywords": true },
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "ctx": { "protocol": "gemini" },
     "request": { "systemInstruction": { "parts": [{ "text": "You are Trae." }] }, "contents": [] },
@@ -98,7 +102,7 @@
   {
     "name": "rewrite: the name becomes the mapping's value",
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
-    "options": { "mode": "rewrite" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite" },
     "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
     "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
   },
@@ -119,12 +123,12 @@
   {
     "name": "a mode this middleware does not have falls back to cloak",
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
-    "options": { "mode": "block" },
+    "options": { "useAmbiguousKeywords": true, "mode": "block" },
     "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
     "expect_request": { "model": "m", "system": "You are C\u200bu\u200brsor.", "messages": [] }
   },
   {
-    "name": "customMappings overrides a default name",
+    "name": "customMappings adds a name",
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "options": { "mode": "rewrite", "customMappings": { "Cursor": "MyIDE" } },
     "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
@@ -147,14 +151,14 @@
   {
     "name": "case does not matter",
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
-    "options": { "mode": "rewrite" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite" },
     "request": { "model": "m", "system": "you are cursor and WINDSURF.", "messages": [] },
     "expect_request": { "model": "m", "system": "you are Antigravity and Antigravity.", "messages": [] }
   },
   {
     "name": "accounts says which subscriptions",
     "provider": { "id": "g", "name": "Gemini", "account": "gemini", "model": "m" },
-    "options": { "mode": "rewrite", "accounts": ["gemini"] },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "accounts": ["gemini"] },
     "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
     "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
   },
@@ -168,5 +172,148 @@
     "name": "no name anywhere: nothing changed",
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "request": { "model": "m", "system": "You write TypeScript.", "messages": [{ "role": "user", "content": "hi" }] }
+  },
+  {
+    "name": "boundaries: a name glued into a word is left alone",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Traefik routes it; we decline to rename, Kirov.", "messages": [] }
+  },
+  {
+    "name": "boundaries: a whole word next to a glued one still matches",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite" },
+    "request": { "model": "m", "system": "Traefik and Cursor both.", "messages": [] },
+    "expect_request": { "model": "m", "system": "Traefik and Antigravity both.", "messages": [] }
+  },
+  {
+    "name": "boundaries: false restores the Go plugin's substring matching",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "boundaries": false },
+    "request": { "model": "m", "system": "Traefik.", "messages": [] },
+    "expect_request": { "model": "m", "system": "Antigravityfik.", "messages": [] }
+  },
+  {
+    "name": "protectCode: a name inside a fence stays",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "```\nconst who = \"Cursor\"\n```\n", "messages": [] }
+  },
+  {
+    "name": "protectCode: a name in inline code stays",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Run `cursor --help` and then Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "Run `cursor --help` and then C\u200bu\u200brsor.", "messages": [] }
+  },
+  {
+    "name": "protectCode: false lets the fence be rewritten",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "protectCode": false },
+    "request": { "model": "m", "system": "```\nconst who = \"Cursor\"\n```", "messages": [] },
+    "expect_request": { "model": "m", "system": "```\nconst who = \"C\u200bu\u200brsor\"\n```", "messages": [] }
+  },
+  {
+    "name": "useModelKeywords: a model name is matched when asked for",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite", "useModelKeywords": true },
+    "request": { "model": "m", "system": "You are Claude Sonnet 4.5.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity 4.5.", "messages": [] }
+  },
+  {
+    "name": "useModelKeywords: a model name alone is left by default",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are Claude Sonnet 4.5.", "messages": [] }
+  },
+  {
+    "name": "dryRun: nothing changes, even where a name matches",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "dryRun": true },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
+  },
+  {
+    "name": "Responses: input as a string",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "responses" },
+    "request": { "model": "m", "input": "You are Cursor." },
+    "expect_request": { "model": "m", "input": "You are C\u200bu\u200brsor." }
+  },
+  {
+    "name": "Gemini: a system role in contents",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "gemini" },
+    "request": { "contents": [{ "role": "system", "parts": [{ "text": "You are Trae." }] }] },
+    "expect_request": { "contents": [{ "role": "system", "parts": [{ "text": "You are T\u200br\u200bae." }] }] }
+  },
+  {
+    "name": "Chat: content as a single text object",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "chat" },
+    "request": { "messages": [{ "role": "system", "content": { "type": "text", "text": "You are Cursor." } }] },
+    "expect_request": { "messages": [{ "role": "system", "content": { "type": "text", "text": "You are C\u200bu\u200brsor." } }] }
+  },
+  {
+    "name": "Anthropic: a text block without a type",
+    "options": { "useAmbiguousKeywords": true },
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": [{ "text": "You are Cursor." }], "messages": [] },
+    "expect_request": { "model": "m", "system": [{ "text": "You are C\u200bu\u200brsor." }], "messages": [] }
+  },
+  {
+    "name": "accounts are compared ignoring case",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "Antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "accounts": ["ANTIGRAVITY"] },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "off as the string false does not switch the middleware off",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "off": "false", "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "strictCase: a lower-case ordinary word is left alone",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "strictCase": true },
+    "request": { "model": "m", "system": "Move the cursor to the end; goose bumps.", "messages": [] }
+  },
+  {
+    "name": "strictCase: the preset's own spelling still matches",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "strictCase": true, "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "strictCase: a lower-case identity line still matches by default",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite" },
+    "request": { "model": "m", "system": "you are cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "you are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "customMappings: null takes a preset entry out",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "customMappings": { "Windsurf": null } },
+    "request": { "model": "m", "system": "You are Windsurf.", "messages": [] }
+  },
+  {
+    "name": "customMappings: a multi-line string keeps a comma in the value",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite", "customMappings": "Cursor: My IDE, Inc.\nWindsurf: My IDE, Inc." },
+    "request": { "model": "m", "system": "You are Cursor with Windsurf", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are My IDE, Inc. with My IDE, Inc.", "messages": [] }
+  },
+  {
+    "name": "customMappings: a name mapped to itself changes nothing",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "customMappings": { "Cursor": "Cursor" } },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
   }
 ]

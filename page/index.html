@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antigravity coding filter</title>
+<link rel="stylesheet" href="style.css">
+<script src="_magpie/bridge.js"></script>
+<script src="filter.js"></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="bar">
+  <div class="lead">
+    <h1 data-t="title">Antigravity coding filter</h1>
+    <p class="sub" data-t="sub">Another agent's name, rewritten or cloaked, only on the request an Antigravity account is sent.</p>
+  </div>
+  <div class="status">
+    <span id="state" class="chip" hidden></span>
+    <button type="button" id="save" class="primary" data-t="save">Save</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2 data-t="options">Options</h2>
+
+    <fieldset class="modes">
+      <legend data-t="mode">Mode</legend>
+      <label class="choice"><input type="radio" name="mode" value="cloak"><span data-t="modeCloak">Cloak</span></label>
+      <label class="choice"><input type="radio" name="mode" value="rewrite"><span data-t="modeRewrite">Rewrite</span></label>
+      <p class="hint" id="mode-hint"></p>
+    </fieldset>
+
+    <div class="switches">
+      <label class="switch"><input type="checkbox" id="useDefaultKeywords"><span data-t="useDefaultKeywords">Default preset</span></label>
+      <label class="switch"><input type="checkbox" id="useModelKeywords"><span data-t="useModelKeywords">Model names</span></label>
+      <label class="switch"><input type="checkbox" id="useAmbiguousKeywords"><span data-t="useAmbiguousKeywords">Ambiguous names</span></label>
+      <label class="switch"><input type="checkbox" id="boundaries"><span data-t="boundaries">Whole words only</span></label>
+      <label class="switch"><input type="checkbox" id="protectCode"><span data-t="protectCode">Protect code</span></label>
+      <label class="switch"><input type="checkbox" id="strictCase"><span data-t="strictCase">Match case for ambiguous names</span></label>
+      <label class="switch"><input type="checkbox" id="dryRun"><span data-t="dryRun">Dry run</span></label>
+      <label class="switch"><input type="checkbox" id="report"><span data-t="report">Report to ctx.state</span></label>
+      <label class="switch"><input type="checkbox" id="off"><span data-t="off">Off</span></label>
+    </div>
+
+    <label class="field">
+      <span data-t="accounts">Accounts</span>
+      <input id="accounts" type="text" placeholder="antigravity" spellcheck="false" autocomplete="off">
+      <small data-t="accountsHint">Comma-separated subscription kinds, compared ignoring case.</small>
+    </label>
+
+    <label class="field">
+      <span data-t="custom">customMappings</span>
+      <textarea id="custom" rows="5" spellcheck="false" placeholder="Cursor: Antigravity&#10;My Agent: Antigravity"></textarea>
+      <small data-t="customHint">One per line, name then replacement. A line with only a name is skipped; write null as the replacement to remove a preset entry.</small>
+      <small id="custom-error" class="error" hidden></small>
+    </label>
+
+    <div class="actions">
+      <button type="button" id="reset" data-t="reset">Reset</button>
+      <button type="button" id="copy-json" data-t="copyJson">Copy JSON</button>
+      <button type="button" id="copy-cmd" data-t="copyCommand">Copy command</button>
+    </div>
+    <pre id="json" class="code" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel">
+    <h2 data-t="preview">Preview</h2>
+    <p class="hint" data-t="previewHint">Paste the system prompt an agent sends. Nothing here is sent anywhere: this box runs the same matcher the middleware does.</p>
+    <textarea id="sample" rows="7" spellcheck="false" placeholder="You are Cursor, an AI coding assistant."></textarea>
+    <div class="actions">
+      <button type="button" id="example" data-t="example">Load an example</button>
+      <button type="button" id="clear" data-t="clear">Clear</button>
+      <label class="switch inline"><input type="checkbox" id="show-zw" checked><span data-t="showZw">Show zero-width spaces</span></label>
+    </div>
+    <h3 data-t="sent">What Antigravity would be sent</h3>
+    <pre id="out" class="code out"></pre>
+    <h3 data-t="matches">Matched</h3>
+    <ul id="matches" class="matches"></ul>
+    <p id="none" class="hint" hidden data-t="none">No name matched, so the request goes out as it is.</p>
+  </section>
+</main>
+
+<footer>
+  <p class="hint" data-t="footer">Changing what Google is sent may be against Antigravity's terms, and an account can be banned for it.</p>
+</footer>
+</body>
+</html>
