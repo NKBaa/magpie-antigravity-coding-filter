@@ -1,0 +1,26 @@
+/* Official component rules from Magpie app.css and library.css, revision f38ef9821b17cd08af1bca60081d03b00d6970dc. MIT; see LICENSE.magpie. */
+.row { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 5px 9px 5px 11px; }
+.row + .row, .editor + .row, .row + .editor { border-top: 1px solid var(--line-2); }
+.row .name { font-weight: 500; letter-spacing: -.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.row .who { min-width: 0; flex: 1 1 auto; }
+.row .sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.row.pref, body.window .row.pref { min-height: 48px; padding: 12px 12px 12px 14px; gap: 14px; }
+.row.pref .who { flex: 1 1 auto; }
+.row.pref .sub { margin-top: 2px; color: var(--fg-2); white-space: normal; overflow-wrap: anywhere; }
+.row.pref .set-field { flex: none; width: 120px; height: 24px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); }
+.text { font-size: 12px; color: var(--ctl-fg); padding: 3px 7px; border-radius: 6px; transition: background .12s, color .12s; white-space: nowrap; }
+.text:hover { color: var(--fg); background: var(--pill); }
+.text.action { height: 27px; padding: 0 10px; border: 1px solid var(--line); background: var(--card); color: var(--fg-2); box-shadow: 0 1px 1px rgba(0, 0, 0, .04); display: inline-flex; align-items: center; justify-content: center; }
+.text.action:hover { border-color: var(--muted); background: var(--card-2); color: var(--fg); }
+.text.primary { color: var(--accent-fg); background: var(--accent); font-weight: 500; }
+.text.primary:hover { filter: brightness(1.08); }
+.text.danger:hover { color: var(--red); background: var(--red-soft); }
+.lib-switch.auto-reset, .lib-switch.use-credits { width: 28px; height: 16px; padding: 0; border: 0; cursor: pointer; }
+.lib-switch.auto-reset i, .lib-switch.use-credits i { width: 12px; height: 12px; }
+.lib-switch.auto-reset.on i, .lib-switch.use-credits.on i { transform: translateX(12px); }
+.lib-switch.auto-reset:disabled, .lib-switch.use-credits:disabled { opacity: .6; cursor: default; }
+.lib-switch { flex: none; position: relative; width: 32px; height: 19px; border-radius: 10px; background: var(--line); transition: background .2s var(--ease); }
+.lib-switch i { position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .22s var(--ease); }
+.lib-switch.on { background: var(--fg); }
+.lib-switch.on i { transform: translateX(13px); background: var(--card); }
+:root[data-theme="dark"] .lib-switch.on i { background: var(--bg); }

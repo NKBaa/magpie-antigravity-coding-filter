@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/yetone/magpie",
+  "revision": "f38ef9821b17cd08af1bca60081d03b00d6970dc",
+  "javascript": "internal/gui/assets/kernel.js",
+  "styles": [
+    "internal/gui/assets/app.css",
+    "internal/gui/assets/plugins/library/library.css"
+  ],
+  "license": "MIT",
+  "components": {
+    "button": "39ceb4eaa2a9df0236818177ece86a6725626ab0c8f53515819f0a7f2ea1fb75",
+    "toggle": "734afe406d0bb37beacd5bbc1554cf1b7b33f533904b62141bd29c3c0c3e1e05",
+    "row": "83cce6c980d7603a4169bff3d30940a4f190185595073f5de8b92b561121e91f"
+  }
+}

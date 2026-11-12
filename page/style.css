@@ -1,5 +1,22 @@
-/* Magpie's bridge owns typography, controls, tables and theme colors.
-   Only spacing and layout belong here. Standalone previews use system colors. */
+/* The actual button/toggle/row components and their official rules live in vendor/.
+   Token aliases adapt their host palette to the page bridge. Layout stays here. */
+:root {
+  --fg: var(--magpie-fg, CanvasText);
+  --fg-2: var(--magpie-muted, GrayText);
+  --muted: var(--magpie-muted, GrayText);
+  --ctl-fg: var(--magpie-fg, CanvasText);
+  --bg: var(--magpie-bg, Canvas);
+  --card: var(--magpie-card, Canvas);
+  --card-2: var(--magpie-card, Canvas);
+  --line: var(--magpie-line, ButtonBorder);
+  --line-2: var(--magpie-line, ButtonBorder);
+  --pill: var(--magpie-accent-soft, ButtonFace);
+  --accent: var(--magpie-accent, Highlight);
+  --accent-fg: var(--magpie-accent-fg, HighlightText);
+  --red: var(--magpie-red, CanvasText);
+  --red-soft: var(--magpie-accent-soft, ButtonFace);
+  --ease: ease;
+}
 html:not([data-theme]) {
   font:
     14px/1.5 system-ui,
@@ -63,21 +80,6 @@ main {
 section {
   min-width: 0;
 }
-.setting {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--magpie-line, ButtonBorder);
-}
-.setting small {
-  display: block;
-  margin-top: 3px;
-}
-.setting input[type="checkbox"] {
-  flex-shrink: 0;
-}
 .mode-buttons {
   display: flex;
   gap: 4px;
@@ -119,20 +121,20 @@ section {
   color: var(--magpie-muted, GrayText);
   margin-bottom: 5px;
 }
-.rule label:has(input[type="checkbox"]) {
+.rule label:has(button[role="switch"]) {
   align-self: center;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.rule label:has(input[type="checkbox"]) span {
+.rule label:has(button[role="switch"]) span {
   margin: 0;
 }
 .rule input[type="text"] {
   width: 100%;
   min-width: 0;
 }
-.rule button {
+.rule button:not([role="switch"]) {
   min-height: 30px;
 }
 input[type="text"],
@@ -246,7 +248,7 @@ summary {
   }
 }
 @media (max-width: 520px) {
-  .setting {
+  .row.pref {
     flex-wrap: wrap;
     gap: 10px;
   }

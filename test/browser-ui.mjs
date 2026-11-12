@@ -140,6 +140,59 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       await wait(`document.getElementById('state')?.textContent==='已保存'`);
       expect(await evaluate(`uiErrors`)).toEqual([]);
       expect(
+        await evaluate(
+          `document.getElementById('enabled').matches('button.lib-switch.use-credits[role="switch"]')`,
+        ),
+      ).toBe(true);
+      expect(
+        await evaluate(
+          `document.getElementById('enabled').getAttribute('aria-checked')`,
+        ),
+      ).toBe("true");
+      expect(
+        await evaluate(
+          `document.querySelectorAll('input[type="checkbox"]').length`,
+        ),
+      ).toBe(0);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('button:not([data-magpie-component])').length`,
+        ),
+      ).toBe(0);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('.row.pref[data-magpie-component="row"]').length`,
+        ),
+      ).toBe(11);
+      await evaluate(`document.getElementById('enabled').focus()`);
+      for (const type of ["keyDown", "keyUp"])
+        await call("Input.dispatchKeyEvent", {
+          type,
+          key: " ",
+          code: "Space",
+          windowsVirtualKeyCode: 32,
+        });
+      expect(
+        await evaluate(
+          `document.getElementById('enabled').getAttribute('aria-checked')`,
+        ),
+      ).toBe("false");
+      for (const type of ["keyDown", "keyUp"])
+        await call("Input.dispatchKeyEvent", {
+          type,
+          key: " ",
+          code: "Space",
+          windowsVirtualKeyCode: 32,
+        });
+      expect(await evaluate(`document.getElementById('enabled').checked`)).toBe(
+        true,
+      );
+      expect(
+        await evaluate(
+          `getComputedStyle(document.getElementById('cloak')).backgroundColor !== getComputedStyle(document.getElementById('rewrite')).backgroundColor`,
+        ),
+      ).toBe(true);
+      expect(
         await evaluate(`document.querySelectorAll('#rules .rule').length`),
       ).toBe(2);
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
@@ -231,7 +284,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         await evaluate(`document.querySelectorAll('#rules .rule').length`),
       ).toBe(4);
       await evaluate(
-        `document.querySelectorAll('#rules .rule button')[2].click();window.failSet=true;document.getElementById('save').click()`,
+        `document.querySelectorAll('#rules .rule button.danger')[2].click();window.failSet=true;document.getElementById('save').click()`,
       );
       await wait(
         `document.getElementById('message').textContent.includes('Write failed')`,

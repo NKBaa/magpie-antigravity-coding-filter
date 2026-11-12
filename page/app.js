@@ -169,6 +169,9 @@
     loadedLocal = false;
   const bridge = globalThis.magpie,
     t = (key) => words[lang][key] || key;
+  const controls = globalThis.FilterControls,
+    ui = controls.ui;
+  controls.mount();
   function message(text = "") {
     $("message").textContent = text;
     $("message").hidden = !text;
@@ -180,6 +183,7 @@
       .querySelectorAll("[data-t]")
       .forEach((el) => (el.textContent = t(el.dataset.t)));
     $("save").textContent = t(bridge ? "save" : "localSave");
+    controls.relabel(t);
   }
   function values() {
     const v = {
@@ -216,7 +220,7 @@
     rows.forEach((row, index) => {
       const wrapper = document.createElement("div");
       wrapper.className = "rule";
-      const name = document.createElement("input");
+      const name = ui.el("input", "set-field");
       name.type = "text";
       name.value = row.name;
       name.placeholder = "My Agent";
@@ -229,7 +233,7 @@
         row.name = name.value;
         render();
       });
-      const replacement = document.createElement("input");
+      const replacement = ui.el("input", "set-field");
       replacement.type = "text";
       replacement.value = row.replacement;
       replacement.disabled = row.exclude;
@@ -238,17 +242,17 @@
         row.replacement = replacement.value;
         render();
       });
-      const exclude = document.createElement("input");
-      exclude.type = "checkbox";
-      exclude.checked = row.exclude;
+      const exclude = controls.toggle(row.exclude, t("exclude"));
       exclude.addEventListener("change", () => {
         row.exclude = exclude.checked;
         replacement.disabled = row.exclude;
         render();
       });
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = t("remove");
+      const remove = controls.button(
+        t("remove"),
+        () => {},
+        "text action danger",
+      );
       remove.setAttribute("aria-label", `${t("remove")} ${row.name}`);
       remove.addEventListener("click", () => {
         rows.splice(index, 1);
@@ -265,9 +269,7 @@
     });
     $("quick-add").replaceChildren(
       ...F.ambiguousNames.map((name) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = `+ ${name}`;
+        const b = controls.button(`+ ${name}`, () => {});
         b.dataset.name = name;
         b.disabled = rows.some(
           (row) => row.name.toLowerCase() === name.toLowerCase(),
@@ -432,13 +434,15 @@
       message();
       render();
     });
-  document.querySelectorAll("main input,main textarea").forEach((el) => {
-    el.addEventListener("input", () => {
-      message();
-      render();
+  document
+    .querySelectorAll('main input,main textarea,main button[role="switch"]')
+    .forEach((el) => {
+      el.addEventListener("input", () => {
+        message();
+        render();
+      });
+      el.addEventListener("change", render);
     });
-    el.addEventListener("change", render);
-  });
   $("example").addEventListener("click", () => {
     $("sample").value =
       'You are Chatbox, an AI assistant.\nYou work with Windsurf.\n\nRead https://cursor.com/docs and cursor.md.\n\n```js\nconst name = "Cursor"\n```';
