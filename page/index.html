@@ -81,7 +81,8 @@
         </section>
         <section aria-labelledby="catalog-title">
           <div class="section-head">
-            <h2 id="catalog-title" data-t="catalogTitle">内置规则</h2>
+            <h2 id="catalog-title" data-t="catalogTitle">规则管理</h2>
+            <button id="add-rule" type="button" data-t="add">新增规则</button>
             <small id="catalog-count" class="muted" aria-live="polite"></small>
           </div>
           <div
@@ -99,6 +100,38 @@
               spellcheck="false"
           /></label>
           <p id="catalog-note" class="muted"></p>
+          <fieldset id="rule-editor" hidden>
+            <legend id="editor-title"></legend>
+            <p id="editor-note" class="muted"></p>
+            <label class="field"
+              ><span data-t="name">要匹配的名称</span
+              ><input
+                id="editor-name"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+            /></label>
+            <label class="field"
+              ><span data-t="replacement">替换为</span
+              ><input
+                id="editor-replacement"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+            /></label>
+            <label class="editor-exclude"
+              ><span data-t="exclude">排除此词</span
+              ><input id="editor-exclude" type="checkbox"
+            /></label>
+            <p id="editor-error" role="alert" hidden></p>
+            <div class="editor-actions">
+              <button id="editor-apply" type="button" data-t="applyRule">
+                应用到列表</button
+              ><button id="editor-cancel" type="button" data-t="cancelRule">
+                取消
+              </button>
+            </div>
+          </fieldset>
           <div
             class="catalog-table"
             tabindex="0"
@@ -111,6 +144,7 @@
                   <th data-t="catalogName">名称</th>
                   <th data-t="catalogReplacement">替换值（改写模式）</th>
                   <th data-t="catalogStatus">状态</th>
+                  <th data-t="ruleActions">操作</th>
                 </tr>
               </thead>
               <tbody id="catalog-rows"></tbody>
@@ -119,22 +153,6 @@
           <p id="catalog-empty" class="muted" data-t="catalogEmpty" hidden>
             没有匹配的规则。
           </p>
-        </section>
-        <section aria-labelledby="rules-title">
-          <div class="section-head">
-            <div>
-              <h2 id="rules-title" data-t="rules">自定义词条</h2>
-              <p class="muted" data-t="rulesHint">
-                按需添加 Cursor、Codex 等名称，无需编写配置。
-              </p>
-            </div>
-            <button id="add-rule" type="button" data-t="add">添加词条</button>
-          </div>
-          <div id="quick-add" class="quick-add" aria-label="Quick add"></div>
-          <p id="empty-rules" class="muted" data-t="emptyRules">
-            还没有自定义词条。上方名称可一键添加。
-          </p>
-          <div id="rules"></div>
         </section>
         <details id="advanced">
           <summary data-t="advanced">高级设置</summary>

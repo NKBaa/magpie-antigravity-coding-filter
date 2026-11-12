@@ -34,7 +34,7 @@
       modelsHint: "例如 Claude Sonnet、GPT-5；按需开启",
       rules: "自定义词条",
       rulesHint: "按需添加 Cursor、Codex 等名称，无需编写配置。",
-      add: "添加词条",
+      add: "新增规则",
       emptyRules: "还没有自定义词条。上方名称可一键添加。",
       advanced: "高级设置",
       boundaries: "只匹配完整名称",
@@ -78,7 +78,25 @@
       saveFailed: "保存失败：",
       reload: "重新加载",
       excluded: "将保留此名称，不参与处理",
-      catalogTitle: "内置规则",
+      catalogTitle: "规则管理",
+      catalogAll: "全部规则",
+      catalogCustom: "自定义 / 已修改",
+      ruleActions: "操作",
+      editRule: "修改",
+      newRule: "新增规则",
+      applyRule: "应用到列表",
+      cancelRule: "取消",
+      restoreRule: "恢复默认",
+      enableRule: "启用",
+      sourceCustom: "自定义",
+      sourceAmbiguous: "歧义词",
+      editing: "正在编辑规则",
+      finishEditing: "请先应用或取消当前编辑。",
+      missingRule: "该规则已不存在，请重新选择。",
+      editorHint:
+        "应用到列表后，点击保存更改即可生效；也可直接按 Ctrl/Cmd+S 保存。",
+      builtinEditHint:
+        "修改默认规则会保存为自定义覆盖。更改名称将排除原名称；可在原规则上恢复默认。",
       catalogSearch: "搜索规则名称",
       catalogName: "名称",
       catalogReplacement: "替换值（改写模式）",
@@ -89,7 +107,7 @@
       catalogAmbiguous: "歧义词（默认关闭）",
       catalogEnabled: "已启用",
       catalogDisabled: "未启用",
-      catalogOverridden: "自定义覆盖",
+      catalogOverridden: "已修改",
       catalogExcluded: "已排除",
       catalogHint:
         "下表显示当前草稿的规则配置。替换值仅用于“替换名字”模式；“保留原文”模式会插入不可见字符。",
@@ -122,7 +140,7 @@
       modelsHint: "For example Claude Sonnet and GPT-5; optional",
       rules: "Custom names",
       rulesHint: "Add names such as Cursor or Codex when needed.",
-      add: "Add name",
+      add: "Add rule",
       emptyRules: "No custom names yet. Click a name above to add it.",
       advanced: "Advanced",
       boundaries: "Match whole names",
@@ -169,7 +187,25 @@
       saveFailed: "Could not save: ",
       reload: "Reload",
       excluded: "This name will be preserved",
-      catalogTitle: "Built-in rules",
+      catalogTitle: "Rules",
+      catalogAll: "All rules",
+      catalogCustom: "Custom / modified",
+      ruleActions: "Actions",
+      editRule: "Edit",
+      newRule: "New rule",
+      applyRule: "Apply to list",
+      cancelRule: "Cancel",
+      restoreRule: "Restore default",
+      enableRule: "Enable",
+      sourceCustom: "Custom",
+      sourceAmbiguous: "Ambiguous",
+      editing: "Editing a rule",
+      finishEditing: "Apply or cancel the current edit first.",
+      missingRule: "This rule no longer exists. Select it again.",
+      editorHint:
+        "Apply to the list, then save changes. Ctrl/Cmd+S applies and saves directly.",
+      builtinEditHint:
+        "Built-in edits are stored as overrides. Renaming excludes the original name; restore the original rule to undo it.",
       catalogSearch: "Search rule names",
       catalogName: "Name",
       catalogReplacement: "Replacement (rewrite mode)",
@@ -180,7 +216,7 @@
       catalogAmbiguous: "Ambiguous names (off by default)",
       catalogEnabled: "Enabled",
       catalogDisabled: "Not enabled",
-      catalogOverridden: "Custom override",
+      catalogOverridden: "Modified",
       catalogExcluded: "Excluded",
       catalogHint:
         "Rules reflect the current draft. Replacement values apply in rewrite mode; keep wording inserts invisible characters.",
@@ -204,7 +240,9 @@
     busy = false,
     lastWrite = 0,
     loadedLocal = false,
-    catalogGroup = "common";
+    catalogGroup = "all",
+    editor = null,
+    editorBaseline = "";
   const bridge = globalThis.magpie,
     t = (key) => words[lang][key] || key;
   const controls = globalThis.FilterControls,
@@ -243,98 +281,94 @@
     $("accounts").value = (normalized.options.accounts || ["antigravity"]).join(
       ", ",
     );
-    drawRules();
+    editor = null;
+    $("rule-editor").hidden = true;
   }
-  function labelled(caption, control) {
-    const label = document.createElement("label"),
-      span = document.createElement("span");
-    span.textContent = caption;
-    label.append(span, control);
-    return label;
+  function editorDraft() {
+    return {
+      name: $("editor-name").value,
+      replacement: $("editor-replacement").value,
+      exclude: $("editor-exclude").checked,
+    };
   }
-  function drawRules() {
-    $("rules").replaceChildren();
-    $("empty-rules").hidden = rows.length > 0;
-    rows.forEach((row, index) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "rule";
-      const name = ui.el("input", "set-field");
-      name.type = "text";
-      name.value = row.name;
-      name.placeholder = "My Agent";
-      name.autocomplete = "off";
-      name.spellcheck = false;
-      name.setAttribute("aria-label", t("name"));
-      name.dataset.index = index;
-      name.dataset.field = "name";
-      name.addEventListener("input", () => {
-        row.name = name.value;
-        render();
-      });
-      const replacement = ui.el("input", "set-field");
-      replacement.type = "text";
-      replacement.value = row.replacement;
-      replacement.disabled = row.exclude;
-      replacement.setAttribute("aria-label", t("replacement"));
-      replacement.addEventListener("input", () => {
-        row.replacement = replacement.value;
-        render();
-      });
-      const exclude = controls.toggle(row.exclude, t("exclude"));
-      exclude.addEventListener("change", () => {
-        row.exclude = exclude.checked;
-        replacement.disabled = row.exclude;
-        render();
-      });
-      const remove = controls.button(
-        t("remove"),
-        () => {},
-        "text action danger",
-      );
-      remove.setAttribute("aria-label", `${t("remove")} ${row.name}`);
-      remove.addEventListener("click", () => {
-        rows.splice(index, 1);
-        drawRules();
-        render();
-      });
-      wrapper.append(
-        labelled(t("name"), name),
-        labelled(t("replacement"), replacement),
-        labelled(t("exclude"), exclude),
-        remove,
-      );
-      $("rules").append(wrapper);
-    });
-    $("quick-add").replaceChildren(
-      ...F.ambiguousNames.map((name) => {
-        const b = controls.button(`+ ${name}`, () => {});
-        b.dataset.name = name;
-        b.disabled = rows.some(
-          (row) => row.name.toLowerCase() === name.toLowerCase(),
-        );
-        b.addEventListener("click", () => add(name));
-        return b;
-      }),
-    );
+  function editorChanged() {
+    return editor && JSON.stringify(editorDraft()) !== editorBaseline;
   }
-  function add(name = "") {
-    if (
-      name &&
-      rows.some((row) => row.name.toLowerCase() === name.toLowerCase())
-    )
+  function beginEdit(rule = null) {
+    if (!ready || busy) return;
+    if (editor) {
+      message(t("finishEditing"));
+      $("editor-name").focus();
       return;
-    rows.push({ name, replacement: "Antigravity", exclude: false });
-    drawRules();
+    }
+    editor = {
+      originalName: rule?.name ?? null,
+      builtin: rule?.builtin || false,
+    };
+    $("editor-name").value = rule?.name || "";
+    $("editor-replacement").value =
+      rule?.replacement ?? rule?.defaultReplacement ?? "Antigravity";
+    $("editor-exclude").checked = rule?.state === "excluded";
+    editorBaseline = JSON.stringify(editorDraft());
+    $("editor-error").hidden = true;
+    $("rule-editor").hidden = false;
+    message();
     render();
-    const fields = $("rules").querySelectorAll('input[data-field="name"]');
-    fields[fields.length - 1]?.focus();
+    $("editor-name").focus();
+    $("rule-editor").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  function closeEditor() {
+    editor = null;
+    $("rule-editor").hidden = true;
+    $("editor-error").hidden = true;
+  }
+  function applyEditor() {
+    if (!editor) return true;
+    try {
+      const draft = editorDraft();
+      rows = M.editRule(rows, editor.originalName, draft);
+      catalogGroup = "all";
+      $("catalog-search").value = draft.name.trim();
+      closeEditor();
+      message();
+      render();
+      [...$("catalog-rows").children]
+        .find((row) => row.dataset.name === draft.name.trim())
+        ?.querySelector('[data-action="edit"]')
+        ?.focus();
+      return true;
+    } catch (error) {
+      $("editor-error").textContent = t(error.message);
+      $("editor-error").hidden = false;
+      $("editor-name").focus();
+      return false;
+    }
+  }
+  function toggleRule(rule) {
+    if (!ready || busy || editor) return;
+    const exclude = rule.state === "enabled" || rule.state === "overridden";
+    rows = M.editRule(rows, rule.name, {
+      name: rule.name,
+      replacement: rule.replacement ?? rule.defaultReplacement ?? "Antigravity",
+      exclude,
+    });
+    message();
+    render();
+  }
+  function restoreRule(rule) {
+    if (!ready || busy || editor) return;
+    rows = M.restoreRule(rows, rule.name);
+    message();
+    render();
   }
   function drawCatalog(options) {
     const groups = $("catalog-groups");
     const definitions = [
+      ["all", "catalogAll"],
       ["common", "catalogCommon"],
       ["models", "catalogModels"],
       ["ambiguous", "catalogAmbiguous"],
+      ["custom", "catalogCustom"],
     ];
     if (!groups.children.length) {
       for (const [group] of definitions) {
@@ -350,10 +384,30 @@
         groups.append(button);
       }
     }
+    const priority = (rule) =>
+      !rule.builtin
+        ? 0
+        : ["overridden", "excluded"].includes(rule.state)
+          ? 1
+          : rule.state === "enabled"
+            ? 2
+            : 3;
+    const list = M.ruleList(options || {}).sort(
+      (a, b) => priority(a) - priority(b),
+    );
+    const filterGroup = (rule, group) =>
+      group === "all" ||
+      (group === "custom"
+        ? !rule.builtin ||
+          rule.state === "overridden" ||
+          rule.state === "excluded"
+        : rule.group === group);
     for (const [group, label] of definitions) {
       const button = groups.querySelector('[data-group="' + group + '"]');
       button.textContent =
-        t(label) + " · " + M.catalog(options || {}, group).length;
+        t(label) +
+        " · " +
+        list.filter((rule) => filterGroup(rule, group)).length;
       button.setAttribute("aria-pressed", String(catalogGroup === group));
     }
     if (!options) {
@@ -363,9 +417,9 @@
       $("catalog-note").textContent = t("invalid");
       return;
     }
-    const list = M.catalog(options, catalogGroup);
     const query = $("catalog-search").value.trim().toLowerCase();
-    const visible = list.filter((rule) =>
+    const grouped = list.filter((rule) => filterGroup(rule, catalogGroup));
+    const visible = grouped.filter((rule) =>
       rule.name.toLowerCase().includes(query),
     );
     const status = {
@@ -374,25 +428,55 @@
       overridden: "catalogOverridden",
       excluded: "catalogExcluded",
     };
+    const sources = {
+      common: "catalogCommon",
+      models: "catalogModels",
+      ambiguous: "sourceAmbiguous",
+      custom: "sourceCustom",
+    };
     $("catalog-rows").replaceChildren(
       ...visible.map((rule) => {
         const row = ui.el("tr");
         row.dataset.name = rule.name;
         row.dataset.state = rule.state;
+        row.dataset.group = rule.group;
         const name = ui.el("td"),
           value = ui.el("td"),
-          state = ui.el("td");
-        name.append(ui.el("code", "", rule.name));
+          state = ui.el("td"),
+          actions = ui.el("td");
+        name.append(
+          ui.el("code", "", rule.name),
+          ui.el("small", "muted rule-source", t(sources[rule.group])),
+        );
         value.append(
           ui.el("code", "", rule.replacement === null ? "—" : rule.replacement),
         );
         state.textContent = t(status[rule.state]);
-        row.append(name, value, state);
+        const buttons = ui.el("div", "rule-actions");
+        const action = (label, kind, fn) => {
+          const button = controls.button(t(label), fn, "text");
+          button.dataset.action = kind;
+          button.disabled = !ready || busy || !!editor;
+          buttons.append(button);
+        };
+        action("editRule", "edit", () => beginEdit(rule));
+        action(
+          rule.state === "enabled" || rule.state === "overridden"
+            ? "exclude"
+            : "enableRule",
+          "toggle",
+          () => toggleRule(rule),
+        );
+        if (!rule.builtin) action("remove", "delete", () => restoreRule(rule));
+        else if (rule.state === "overridden" || rule.state === "excluded")
+          action("restoreRule", "restore", () => restoreRule(rule));
+        actions.append(buttons);
+        row.append(name, value, state, actions);
         return row;
       }),
     );
     $("catalog-count").textContent =
-      visible.length + " / " + list.length + " " + t("catalogCount");
+      visible.length + " / " + grouped.length + " " + t("catalogCount");
     $("catalog-empty").hidden = visible.length > 0;
     $("catalog-note").textContent =
       (options.off
@@ -407,17 +491,6 @@
     $("mode-hint").textContent = t(
       mode === "cloak" ? "cloakHint" : "rewriteHint",
     );
-    $("rules")
-      .querySelectorAll("label:nth-child(2)")
-      .forEach((label) => (label.hidden = mode !== "rewrite"));
-    $("quick-add")
-      .querySelectorAll("button")
-      .forEach((button) => {
-        button.disabled = rows.some(
-          (row) =>
-            row.name.trim().toLowerCase() === button.dataset.name.toLowerCase(),
-        );
-      });
     let options, error;
     try {
       options = collect();
@@ -437,7 +510,17 @@
     }
     $("copy-json").disabled = false;
     $("json").textContent = JSON.stringify(options, null, 2);
-    const dirty = JSON.stringify(options) !== baseline;
+    const dirty = JSON.stringify(options) !== baseline || !!editorChanged();
+    $("add-rule").disabled = !ready || busy || !!editor;
+    $("rule-editor").hidden = !editor;
+    if (editor) {
+      $("editor-title").textContent = t(
+        editor.originalName ? "editRule" : "newRule",
+      );
+      $("editor-note").textContent =
+        (editor.builtin ? t("builtinEditHint") + " " : "") + t("editorHint");
+      $("editor-replacement").disabled = busy || $("editor-exclude").checked;
+    }
     $("save").disabled = !ready || busy || !dirty;
     $("state").textContent = !ready
       ? t("loading")
@@ -480,12 +563,10 @@
         return span;
       }),
     );
-    $("rules")
-      .querySelectorAll("label:nth-child(2)")
-      .forEach((label) => (label.hidden = mode !== "rewrite"));
   }
   async function save() {
     if (!ready || busy) return;
+    if (editor && !applyEditor()) return;
     let candidate;
     try {
       candidate = collect();
@@ -533,12 +614,29 @@
       controls.forEach((el, i) => {
         if (el.isConnected) el.disabled = disabled[i];
       });
-      drawRules();
       render();
     }
   }
   $("save").addEventListener("click", save);
-  $("add-rule").addEventListener("click", () => add());
+  $("add-rule").addEventListener("click", () => beginEdit());
+  $("editor-apply").addEventListener("click", applyEditor);
+  $("rule-editor").addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeEditor();
+      render();
+    } else if (
+      event.key === "Enter" &&
+      event.target.matches('input[type="text"]')
+    ) {
+      event.preventDefault();
+      applyEditor();
+    }
+  });
+  $("editor-cancel").addEventListener("click", () => {
+    closeEditor();
+    render();
+  });
   for (const id of ["cloak", "rewrite"])
     $(id).addEventListener("click", () => {
       mode = id;
@@ -550,6 +648,7 @@
     .forEach((el) => {
       el.addEventListener("input", () => {
         message();
+        $("editor-error").hidden = true;
         render();
       });
       el.addEventListener("change", render);
@@ -604,7 +703,6 @@
         bridge.onTheme((theme) => {
           lang = String(theme.lang || "en").startsWith("zh") ? "zh" : "en";
           translate();
-          drawRules();
           render();
         });
       } else {

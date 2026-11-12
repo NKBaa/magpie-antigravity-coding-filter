@@ -183,6 +183,154 @@
       };
     });
   }
+  function builtinRules() {
+    const filter = globalThis.AntigravityFilter;
+    const rules = new Map();
+    for (const [group, mappings] of [
+      ["common", filter.defaultMappings],
+      ["models", filter.modelMappings],
+      ["ambiguous", filter.ambiguousMappings],
+    ]) {
+      for (const [name, replacement] of mappings) {
+        const key = name.toLowerCase();
+        if (!rules.has(key)) rules.set(key, { name, replacement, group });
+      }
+    }
+    return rules;
+  }
+
+  // One logical row per case-insensitive name. An override keeps the user's
+  // spelling, which is significant when strictCase is enabled.
+  function ruleList(value) {
+    const { options, rows } = normalize(value);
+    const builtins = builtinRules();
+    const custom = new Map(rows.map((row) => [row.name.toLowerCase(), row]));
+    const enabled = {
+      common: options.useDefaultKeywords,
+      models: options.useModelKeywords,
+      ambiguous: options.useAmbiguousKeywords,
+    };
+    const result = [];
+    for (const [key, builtin] of builtins) {
+      const override = custom.get(key);
+      result.push({
+        name: override ? override.name : builtin.name,
+        replacement: override
+          ? override.exclude
+            ? null
+            : override.replacement
+          : builtin.replacement,
+        state: override
+          ? override.exclude
+            ? "excluded"
+            : "overridden"
+          : enabled[builtin.group]
+            ? "enabled"
+            : "disabled",
+        group: builtin.group,
+        builtin: true,
+        defaultReplacement: builtin.replacement,
+      });
+    }
+    for (const [key, row] of custom) {
+      if (builtins.has(key)) continue;
+      result.push({
+        name: row.name,
+        replacement: row.exclude ? null : row.replacement,
+        state: row.exclude ? "excluded" : "enabled",
+        group: "custom",
+        builtin: false,
+        defaultReplacement: null,
+      });
+    }
+    return result;
+  }
+
+  // originalName is null when adding, or the name of an existing unified row
+  // when editing. Persistence remains an array of normalize()-style custom
+  // rows: {name, replacement: string, exclude: boolean}.
+  function editRule(customRows, originalName, edit = {}) {
+    const builtins = builtinRules();
+    const original = originalName == null ? null : String(originalName).trim();
+    const originalKey = original == null ? null : original.toLowerCase();
+    const existing =
+      originalKey == null
+        ? undefined
+        : customRows.find(
+            (row) => row.name.trim().toLowerCase() === originalKey,
+          );
+    if (originalKey !== null && !existing && !builtins.has(originalKey)) {
+      throw new Error("missingRule");
+    }
+    const name = String(edit.name ?? "").trim();
+    if (!name) throw new Error("emptyName");
+    const key = name.toLowerCase();
+    if (
+      (builtins.has(key) && key !== originalKey) ||
+      customRows.some((row) => {
+        const rowKey = row.name.trim().toLowerCase();
+        return rowKey === key && rowKey !== originalKey;
+      })
+    )
+      throw new Error("duplicateName");
+    const exclude = edit.exclude === true;
+    let replacement = String(edit.replacement ?? "").trim();
+    if (!exclude && !replacement) throw new Error("emptyReplacement");
+    if (exclude && !replacement) {
+      replacement =
+        existing?.replacement ||
+        builtins.get(key)?.replacement ||
+        "Antigravity";
+    }
+    const updated = { name, replacement, exclude };
+    const result = [];
+    let replaced = false;
+    for (const row of customRows) {
+      if (
+        originalKey !== null &&
+        row.name.trim().toLowerCase() === originalKey
+      ) {
+        if (replaced) continue;
+        replaced = true;
+        if (key !== originalKey && builtins.has(originalKey)) {
+          result.push({
+            name: row.name.trim(),
+            replacement: builtins.get(originalKey).replacement,
+            exclude: true,
+          });
+          result.push(updated);
+        } else result.push(updated);
+      } else result.push({ ...row });
+    }
+    if (!replaced) {
+      if (
+        originalKey !== null &&
+        key !== originalKey &&
+        builtins.has(originalKey)
+      ) {
+        const builtin = builtins.get(originalKey);
+        result.push({
+          name: builtin.name,
+          replacement: builtin.replacement,
+          exclude: true,
+        });
+      }
+      result.push(updated);
+    }
+    return result;
+  }
+
+  // Removing a built-in override restores its preset behavior; removing a
+  // custom-only row deletes it. Neither operation mutates the input rows.
+  function restoreRule(customRows, name) {
+    const key = String(name ?? "")
+      .trim()
+      .toLowerCase();
+    return customRows
+      .filter((row) => row.name.trim().toLowerCase() !== key)
+      .map((row) => ({ ...row }));
+  }
+
   globalThis.FilterForm = {
     defaults,
     normalize,
@@ -190,5 +338,8 @@
     preview,
     merge,
     catalog,
+    ruleList,
+    editRule,
+    restoreRule,
   };
 })();

@@ -138,20 +138,55 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         url: pathToFileURL(join(root, "page/index.html")).href,
       });
       await wait(`document.getElementById('state')?.textContent==='已保存'`);
+      const setInput = async (id, value) =>
+        evaluate(
+          `(()=>{const el=document.getElementById(${JSON.stringify(id)});el.value=${JSON.stringify(value)};el.dispatchEvent(new Event('input',{bubbles:true}))})()`,
+        );
+      const search = (value) => setInput("catalog-search", value);
+      const action = async (name, kind) =>
+        evaluate(
+          `(()=>{const row=[...document.querySelectorAll('#catalog-rows tr')].find(row=>row.dataset.name===${JSON.stringify(name)});if(!row)throw Error('Missing rule '+${JSON.stringify(name)});row.querySelector('[data-action="'+${JSON.stringify(kind)}+'"]').click()})()`,
+        );
+      const config = () =>
+        evaluate(`JSON.parse(document.getElementById('json').textContent)`);
+      const status = (name) =>
+        evaluate(
+          `([...document.querySelectorAll('#catalog-rows tr')].find(row=>row.dataset.name===${JSON.stringify(name)})||{}).dataset?.state`,
+        );
+      const apply = () =>
+        evaluate(`document.getElementById('editor-apply').click()`);
+      expect(await evaluate(`uiErrors`)).toEqual([]);
       expect(
         await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
-      ).toBe(47);
-      await evaluate(
-        `document.getElementById('catalog-search').value='chatbox';document.getElementById('catalog-search').dispatchEvent(new Event('input',{bubbles:true}))`,
+      ).toBe(75);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('#catalog-rows tr[data-name="Cursor"]').length`,
+        ),
+      ).toBe(1);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('input[type="checkbox"]').length`,
+        ),
+      ).toBe(0);
+      expect(
+        await evaluate(
+          `document.querySelectorAll('button:not([data-magpie-component])').length`,
+        ),
+      ).toBe(0);
+      expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
+        true,
       );
+      await search("chatbox");
       expect(
         await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
       ).toBe(2);
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
         true,
       );
+      await search("");
       await evaluate(
-        `document.getElementById('catalog-search').value='';document.querySelector('#catalog-groups [data-group="models"]').click()`,
+        `document.querySelector('#catalog-groups [data-group="models"]').click()`,
       );
       expect(
         await evaluate(
@@ -165,133 +200,89 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         ),
       ).toBe(16);
       await evaluate(
-        `document.getElementById('useModelKeywords').click();document.querySelector('#catalog-groups [data-group="ambiguous"]').click()`,
+        `document.getElementById('useModelKeywords').click();document.querySelector('#catalog-groups [data-group="all"]').click()`,
       );
-      expect(
-        await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
-      ).toBe(11);
+
+      // Edit a built-in in the same list, exclude it, then restore the preset.
+      await action("Chatbox", "edit");
+      await setInput("editor-replacement", "Workspace");
+      await apply();
+      expect(await status("Chatbox")).toBe("overridden");
+      expect((await config()).customMappings.Chatbox).toBe("Workspace");
       expect(
         await evaluate(
-          `document.querySelector('#catalog-rows tr[data-name="Cursor"]').dataset.state`,
+          `document.querySelectorAll('#catalog-rows tr[data-name="Chatbox"]').length`,
         ),
-      ).toBe("overridden");
-      await evaluate(
-        `document.querySelector('#catalog-groups [data-group="common"]').click()`,
-      );
+      ).toBe(1);
+      await action("Chatbox", "toggle");
+      expect(await status("Chatbox")).toBe("excluded");
+      await action("Chatbox", "restore");
+      expect(await status("Chatbox")).toBe("enabled");
+      expect((await config()).customMappings.Chatbox).toBe(undefined);
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
         true,
       );
-      expect(await evaluate(`uiErrors`)).toEqual([]);
-      expect(
-        await evaluate(
-          `document.getElementById('enabled').matches('button.lib-switch.use-credits[role="switch"]')`,
-        ),
-      ).toBe(true);
-      expect(
-        await evaluate(
-          `document.getElementById('enabled').getAttribute('aria-checked')`,
-        ),
-      ).toBe("true");
-      expect(
-        await evaluate(
-          `document.querySelectorAll('input[type="checkbox"]').length`,
-        ),
-      ).toBe(0);
-      expect(
-        await evaluate(
-          `document.querySelectorAll('button:not([data-magpie-component])').length`,
-        ),
-      ).toBe(0);
-      expect(
-        await evaluate(
-          `document.querySelectorAll('.row.pref[data-magpie-component="row"]').length`,
-        ),
-      ).toBe(11);
-      await evaluate(`document.getElementById('enabled').focus()`);
-      for (const type of ["keyDown", "keyUp"])
-        await call("Input.dispatchKeyEvent", {
-          type,
-          key: " ",
-          code: "Space",
-          windowsVirtualKeyCode: 32,
-        });
-      expect(
-        await evaluate(
-          `document.getElementById('enabled').getAttribute('aria-checked')`,
-        ),
-      ).toBe("false");
-      for (const type of ["keyDown", "keyUp"])
-        await call("Input.dispatchKeyEvent", {
-          type,
-          key: " ",
-          code: "Space",
-          windowsVirtualKeyCode: 32,
-        });
-      expect(await evaluate(`document.getElementById('enabled').checked`)).toBe(
-        true,
-      );
-      expect(
-        await evaluate(
-          `getComputedStyle(document.getElementById('cloak')).backgroundColor !== getComputedStyle(document.getElementById('rewrite')).backgroundColor`,
-        ),
-      ).toBe(true);
-      expect(
-        await evaluate(`document.querySelectorAll('#rules .rule').length`),
-      ).toBe(2);
+
+      // A built-in rename explicitly excludes its old name and creates the new one.
+      await search("Windsurf");
+      await action("Windsurf", "edit");
+      await setInput("editor-name", "Sky Agent");
+      await apply();
+      expect((await config()).customMappings.Windsurf).toBe(null);
+      expect((await config()).customMappings["Sky Agent"]).toBe("Antigravity");
+      await action("Sky Agent", "delete");
+      await search("Windsurf");
+      await action("Windsurf", "restore");
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
         true,
       );
-      expect(await evaluate(`document.getElementById('advanced').open`)).toBe(
-        false,
-      );
-      await evaluate(`document.getElementById('example').click()`);
-      expect(
-        await evaluate(`document.getElementById('matches').textContent`),
-      ).toContain("Chatbox");
-      await evaluate(`document.getElementById('enabled').click()`);
-      expect(await evaluate(`document.getElementById('out').textContent`)).toBe(
-        await evaluate(`document.getElementById('sample').value`),
-      );
-      expect(
-        await evaluate(`document.getElementById('preview-status').textContent`),
-      ).toContain("已关闭");
+
+      // Cancellation leaves the original intact; renaming a custom rule removes its old key.
+      await search("My Agent");
+      await action("My Agent", "edit");
+      await setInput("editor-name", "Cancelled name");
+      await evaluate(`document.getElementById('editor-cancel').click()`);
+      expect((await config()).customMappings["My Agent"]).toBe("Example");
+      expect((await config()).customMappings["Cancelled name"]).toBe(undefined);
+      await action("My Agent", "edit");
+      await setInput("editor-name", "My Assistant");
+      await setInput("editor-replacement", "Example 2");
+      await apply();
+      expect((await config()).customMappings["My Agent"]).toBe(undefined);
+      expect((await config()).customMappings["My Assistant"]).toBe("Example 2");
+
+      // New and duplicate names validate before touching the list.
       await evaluate(
-        `document.getElementById('enabled').click();document.getElementById('rewrite').click()`,
-      );
-      expect(
-        await evaluate(`document.getElementById('out').textContent`),
-      ).toContain("You are Antigravity");
-      await evaluate(
-        `document.getElementById('advanced').open=true;document.getElementById('dryRun').click()`,
-      );
-      expect(await evaluate(`document.getElementById('out').textContent`)).toBe(
-        await evaluate(`document.getElementById('sample').value`),
-      );
-      await evaluate(
-        `document.getElementById('dryRun').click();document.getElementById('add-rule').click()`,
-      );
-      expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
-        true,
+        `document.getElementById('add-rule').click();document.getElementById('editor-apply').click()`,
       );
       expect(
-        await evaluate(`document.getElementById('state').textContent`),
-      ).toContain("请填写");
+        await evaluate(`document.getElementById('editor-error').hidden`),
+      ).toBe(false);
+      await setInput("editor-name", "Chatbox");
+      await apply();
+      expect(
+        await evaluate(`document.getElementById('editor-error').textContent`),
+      ).toContain("重复");
+      await setInput("editor-name", "New Agent");
+      await setInput("editor-replacement", "Custom Value");
+      await apply();
+      expect((await config()).customMappings["New Agent"]).toBe("Custom Value");
       await evaluate(
-        `const input=document.querySelectorAll('#rules input[data-field="name"]')[2];input.value='New Agent';input.dispatchEvent(new Event('input',{bubbles:true}))`,
-      );
-      expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
-        false,
-      );
-      await evaluate(
-        `savedOptions.customMappings={Cursor:'Antigravity','My Agent':'Example','Remote Agent':'Example'};document.getElementById('save').click()`,
+        `savedOptions.customMappings={Cursor:'Antigravity','My Agent':'Example','Remote Agent':'External'};document.getElementById('save').click()`,
       );
       await wait(`document.getElementById('state').textContent==='已保存'`);
       expect(await evaluate(`savedOptions.customMappings['New Agent']`)).toBe(
-        "Antigravity",
+        "Custom Value",
+      );
+      expect(
+        await evaluate(`savedOptions.customMappings['My Assistant']`),
+      ).toBe("Example 2");
+      expect(await evaluate(`savedOptions.customMappings['My Agent']`)).toBe(
+        undefined,
       );
       expect(
         await evaluate(`savedOptions.customMappings['Remote Agent']`),
-      ).toBe("Example");
+      ).toBe("External");
       expect(await evaluate(`savedOptions.extra`)).toBe("preserved");
       const writes = await evaluate("window.writeCount");
       await evaluate(
@@ -308,13 +299,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       expect(await evaluate(`window.getSelection().toString()`)).toBe(
         await evaluate(`document.getElementById('json').textContent`),
       );
-      expect(await evaluate(`document.getElementById('advanced').open`)).toBe(
-        true,
-      );
-      expect(
-        await evaluate(`Object.hasOwn(savedOptions,'custom_mappings')`),
-      ).toBe(false);
-      // Reload just the page script state through the actual saved configuration.
+
+      // Saved values survive reloading; failed writes preserve the edited draft.
       await evaluate(
         `localStorage.setItem('test-saved',JSON.stringify(savedOptions))`,
       );
@@ -324,27 +310,65 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         `performance.timeOrigin!==${origin} && document.getElementById('state')?.textContent==='已保存'`,
       );
       expect(
-        await evaluate(`document.querySelectorAll('#rules .rule').length`),
-      ).toBe(4);
+        await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
+      ).toBe(77);
+      await search("New Agent");
+      await action("New Agent", "edit");
+      await setInput("editor-replacement", "Newer Value");
       await evaluate(
-        `document.querySelectorAll('#rules .rule button.danger')[2].click();window.failSet=true;document.getElementById('save').click()`,
+        `window.failSet=true;document.getElementById('save').click()`,
       );
       await wait(
         `document.getElementById('message').textContent.includes('Write failed')`,
       );
+      expect((await config()).customMappings["New Agent"]).toBe("Newer Value");
       expect(await evaluate(`document.getElementById('save').disabled`)).toBe(
         false,
       );
-      expect(
-        await evaluate(`document.getElementById('state').textContent`),
-      ).toContain("未保存");
       await evaluate(
-        `window.failSet=false;document.getElementById('advanced').open=false;document.getElementById('cloak').click();document.getElementById('save').click()`,
+        `window.failSet=false;document.getElementById('save').click()`,
       );
       await wait(`document.getElementById('state').textContent==='已保存'`);
+      expect(await evaluate(`savedOptions.customMappings['New Agent']`)).toBe(
+        "Newer Value",
+      );
+
+      // Disabled/check-only previews are truthful, and official switches support Space.
+      await evaluate(
+        `document.getElementById('example').click();document.getElementById('enabled').focus()`,
+      );
+      for (const type of ["keyDown", "keyUp"])
+        await call("Input.dispatchKeyEvent", {
+          type,
+          key: " ",
+          code: "Space",
+          windowsVirtualKeyCode: 32,
+        });
+      expect(await evaluate(`document.getElementById('enabled').checked`)).toBe(
+        false,
+      );
+      expect(await evaluate(`document.getElementById('out').textContent`)).toBe(
+        await evaluate(`document.getElementById('sample').value`),
+      );
+      await evaluate(
+        `document.getElementById('enabled').click();document.getElementById('rewrite').click()`,
+      );
+      expect(
+        await evaluate(`document.getElementById('out').textContent`),
+      ).toContain("You are Antigravity");
+      await evaluate(
+        `document.getElementById('advanced').open=true;document.getElementById('dryRun').click()`,
+      );
+      expect(await evaluate(`document.getElementById('out').textContent`)).toBe(
+        await evaluate(`document.getElementById('sample').value`),
+      );
+      await evaluate(
+        `document.getElementById('dryRun').click();document.getElementById('cloak').click();document.getElementById('advanced').open=false`,
+      );
+      await search("");
       expect(await evaluate(`uiErrors`)).toEqual([]);
       await evaluate(
-        `document.getElementById('example').click();document.documentElement.style.setProperty('--magpie-font', '"Segoe UI", "Microsoft YaHei", system-ui, sans-serif');document.fonts.ready`,
+        `document.documentElement.style.setProperty('--magpie-font','"Segoe UI", "Microsoft YaHei", system-ui, sans-serif');document.fonts.ready`,
       );
       await evaluate(
         `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`,
@@ -362,7 +386,13 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
           Buffer.from(shot.data, "base64"),
         );
       };
-      if (process.env.CAPTURE_UI) await screenshot("screenshot.png");
+      if (process.env.CAPTURE_UI) {
+        await screenshot("screenshot.png");
+        await action("Chatbox", "edit");
+        await setInput("editor-replacement", "Your Assistant");
+        await screenshot("screenshot-editor.png");
+        await evaluate(`document.getElementById('editor-cancel').click()`);
+      }
       await evaluate(
         `document.documentElement.style.cssText='--magpie-bg:#1c1c1e;--magpie-fg:#f2f2f7;--magpie-muted:#a1a1a8;--magpie-line:#3a3a3c;--magpie-card:#2c2c2e;--magpie-accent:#8b86ff;--magpie-accent-soft:rgba(139,134,255,.18);color-scheme:dark';document.documentElement.dataset.theme='dark'`,
       );
