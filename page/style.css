@@ -26,8 +26,9 @@ html:not([data-theme]) {
   color-scheme: light dark;
 }
 html:not([data-theme]) body {
-  margin: 0;
-  padding: 24px;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-top: 0;
 }
 * {
   box-sizing: border-box;
@@ -37,11 +38,17 @@ body {
   margin-inline: auto;
 }
 header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  background: var(--magpie-bg, Canvas);
+  border-bottom: 1px solid var(--magpie-line, ButtonBorder);
 }
 header p {
   margin-bottom: 0;
@@ -75,7 +82,7 @@ main {
 }
 .settings {
   display: grid;
-  gap: 24px;
+  gap: 18px;
 }
 section {
   min-width: 0;
@@ -119,7 +126,7 @@ textarea {
 }
 aside {
   position: sticky;
-  top: 20px;
+  top: 92px;
   min-width: 0;
 }
 .preview {
@@ -198,9 +205,6 @@ summary {
   width: 100%;
 }
 .catalog-table {
-  max-height: 420px;
-  overflow: auto;
-  overscroll-behavior: contain;
   border: 1px solid var(--magpie-line, ButtonBorder);
   border-radius: 6px;
 }
@@ -209,10 +213,7 @@ summary {
   table-layout: fixed;
 }
 .catalog-table th {
-  position: sticky;
-  top: 0;
   background: var(--magpie-card, Canvas);
-  z-index: 1;
 }
 .catalog-table td,
 .catalog-table th {
@@ -307,4 +308,21 @@ summary {
 }
 #editor-note {
   font-size: 12px;
+}
+
+.mode-buttons button[aria-pressed="true"] {
+  background: var(--magpie-accent, Highlight);
+  border-color: var(--magpie-accent, Highlight);
+  color: var(--magpie-bg, Canvas);
+  font-weight: 600;
+}
+.mode-buttons button[aria-pressed="true"]:hover {
+  filter: brightness(1.05);
+}
+.mode-buttons button[aria-pressed="false"]:hover {
+  background: var(--magpie-card, Canvas);
+  color: var(--magpie-fg, CanvasText);
+}
+.catalog-table tr:last-child td {
+  border-bottom: 0;
 }

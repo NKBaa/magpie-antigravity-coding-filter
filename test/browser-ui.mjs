@@ -377,10 +377,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         await evaluate(
           `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`,
         );
-        const shot = await call("Page.captureScreenshot", {
-          format: "png",
-          captureBeyondViewport: true,
-        });
+        const shot = await call("Page.captureScreenshot", { format: "png" });
         writeFileSync(
           join(root, "docs", name),
           Buffer.from(shot.data, "base64"),

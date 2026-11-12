@@ -1,16 +1,30 @@
 {
   "name": "magpie-antigravity-coding-filter",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "magpie gateway middleware: another coding agent's name in the system prompt is rewritten or cloaked, only on the request an Antigravity account is sent, with a page to set it up and see it work",
   "type": "module",
-  "files": ["antigravity-coding-filter.middleware.js", "page", "README.md"],
-  "keywords": ["magpie", "magpie-middleware", "magpie-page", "antigravity", "claude-code", "chatbox", "llm-gateway"],
+  "files": [
+    "antigravity-coding-filter.middleware.js",
+    "page",
+    "README.md"
+  ],
+  "keywords": [
+    "magpie",
+    "magpie-middleware",
+    "magpie-page",
+    "antigravity",
+    "claude-code",
+    "chatbox",
+    "llm-gateway"
+  ],
   "license": "MIT",
   "magpie": {
     "middleware": "./antigravity-coding-filter.middleware.js",
     "page": {
       "title": "Antigravity coding filter",
-      "titles": { "zh": "Antigravity 编码过滤" },
+      "titles": {
+        "zh": "Antigravity 编码过滤"
+      },
       "file": "page/index.html",
       "icon": "page/icon.svg"
     },
@@ -21,7 +35,9 @@
       "useModelKeywords": false,
       "useAmbiguousKeywords": false,
       "customMappings": {},
-      "accounts": ["antigravity"],
+      "accounts": [
+        "antigravity"
+      ],
       "boundaries": true,
       "protectCode": true,
       "strictCase": false,
