@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Anthropic: a string system, cloaked on Antigravity; the user's turn is not",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "You are Cursor, an AI coding assistant.", "messages": [{ "role": "user", "content": "Cursor is great" }] },
+    "expect_request": { "model": "m", "system": "You are C\u200bu\u200brsor, an AI coding assistant.", "messages": [{ "role": "user", "content": "Cursor is great" }] }
+  },
+  {
+    "name": "Anthropic: text blocks",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": [{ "type": "text", "text": "You are Windsurf." }], "messages": [] },
+    "expect_request": { "model": "m", "system": [{ "type": "text", "text": "You are W\u200bi\u200bndsurf." }], "messages": [] }
+  },
+  {
+    "name": "A claude subscription gets the prompt as the agent wrote it",
+    "provider": { "id": "c", "name": "Claude", "account": "claude", "model": "claude-sonnet-4-5" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
+  },
+  {
+    "name": "A key, with no account, gets it as it was",
+    "provider": { "id": "k", "name": "Key", "model": "m" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
+  },
+  {
+    "name": "Chat: system and developer messages, not the user's",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "chat" },
+    "request": {
+      "model": "m",
+      "messages": [
+        { "role": "system", "content": "You are Windsurf." },
+        { "role": "developer", "content": [{ "type": "text", "text": "Devin here." }] },
+        { "role": "user", "content": "Kiro?" }
+      ]
+    },
+    "expect_request": {
+      "model": "m",
+      "messages": [
+        { "role": "system", "content": "You are W\u200bi\u200bndsurf." },
+        { "role": "developer", "content": [{ "type": "text", "text": "D\u200be\u200bvin here." }] },
+        { "role": "user", "content": "Kiro?" }
+      ]
+    }
+  },
+  {
+    "name": "Responses: instructions and a developer input item",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "responses" },
+    "request": {
+      "model": "m",
+      "instructions": "You are Codex CLI.",
+      "input": [
+        { "type": "message", "role": "developer", "content": [{ "type": "input_text", "text": "Inside Cline." }] },
+        { "type": "message", "role": "user", "content": [{ "type": "input_text", "text": "Trae?" }] }
+      ]
+    },
+    "expect_request": {
+      "model": "m",
+      "instructions": "You are C\u200bo\u200bdex C\u200bL\u200bI.",
+      "input": [
+        { "type": "message", "role": "developer", "content": [{ "type": "input_text", "text": "Inside C\u200bl\u200bine." }] },
+        { "type": "message", "role": "user", "content": [{ "type": "input_text", "text": "Trae?" }] }
+      ]
+    }
+  },
+  {
+    "name": "Gemini: systemInstruction",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "ctx": { "protocol": "gemini" },
+    "request": { "systemInstruction": { "parts": [{ "text": "You are Trae." }] }, "contents": [] },
+    "expect_request": { "systemInstruction": { "parts": [{ "text": "You are T\u200br\u200bae." }] }, "contents": [] }
+  },
+  {
+    "name": "A name in a path stays",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Open C:\\work\\Cursor\\src\\main.ts now.", "messages": [] }
+  },
+  {
+    "name": "A name in a URL stays",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "See https://cursor.com/docs for the list.", "messages": [] }
+  },
+  {
+    "name": "A name in a file name stays",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Read cursor.md before you start.", "messages": [] }
+  },
+  {
+    "name": "A name in an mcp identifier stays",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Call mcp__cursor__open_file.", "messages": [] }
+  },
+  {
+    "name": "A name inside a .codex path stays",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "Rules live in .codex/Cursor/rules.md.", "messages": [] }
+  },
+  {
+    "name": "rewrite: the name becomes the mapping's value",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "rewrite: the longest name wins",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are GitHub Copilot CLI.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "rewrite: Claude's Agent SDK line, grammar and all",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite" },
+    "request": { "model": "m", "system": "You are a Claude agent, built on Anthropic's Claude Agent SDK.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are a Antigravity, built on Anthropic's Antigravity SDK.", "messages": [] }
+  },
+  {
+    "name": "a mode this middleware does not have falls back to cloak",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "block" },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are C\u200bu\u200brsor.", "messages": [] }
+  },
+  {
+    "name": "customMappings overrides a default name",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite", "customMappings": { "Cursor": "MyIDE" } },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are MyIDE.", "messages": [] }
+  },
+  {
+    "name": "customMappings as a comma-delimited string",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite", "customMappings": "Cursor: Zed, Windsurf: Zed" },
+    "request": { "model": "m", "system": "You are Cursor with Windsurf.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Zed with Zed.", "messages": [] }
+  },
+  {
+    "name": "useDefaultKeywords false leaves the preset out",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite", "useDefaultKeywords": false, "customMappings": { "Foo": "Bar" } },
+    "request": { "model": "m", "system": "You are Cursor and Foo.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Cursor and Bar.", "messages": [] }
+  },
+  {
+    "name": "case does not matter",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "mode": "rewrite" },
+    "request": { "model": "m", "system": "you are cursor and WINDSURF.", "messages": [] },
+    "expect_request": { "model": "m", "system": "you are Antigravity and Antigravity.", "messages": [] }
+  },
+  {
+    "name": "accounts says which subscriptions",
+    "provider": { "id": "g", "name": "Gemini", "account": "gemini", "model": "m" },
+    "options": { "mode": "rewrite", "accounts": ["gemini"] },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are Antigravity.", "messages": [] }
+  },
+  {
+    "name": "off leaves every request as it came",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "options": { "off": true },
+    "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
+  },
+  {
+    "name": "no name anywhere: nothing changed",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "You write TypeScript.", "messages": [{ "role": "user", "content": "hi" }] }
+  }
+]
