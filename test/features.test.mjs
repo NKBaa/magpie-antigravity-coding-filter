@@ -116,6 +116,12 @@ test("Chatbox is in the preset, its longer spelling first", () => {
   expect(run("Chatbox AI here.", { mode: "rewrite" }).body.system).toBe("Antigravity here.")
 })
 
+test("Kelivo is in the preset", () => {
+  expect(run("You are Kelivo, an AI assistant.", { mode: "rewrite" }).body.system).toBe(
+    "You are Antigravity, an AI assistant.",
+  )
+})
+
 test("a prompt with thousands of protected spans stays inside the budget", () => {
   const parts = []
   for (let i = 0; i < 5000; i++) parts.push(`https://cursor.com/doc/${i}/Cursor/page `)

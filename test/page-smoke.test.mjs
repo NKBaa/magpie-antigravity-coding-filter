@@ -101,7 +101,7 @@ test("conflicting edits reject the save, including edit/delete conflicts", () =>
 });
 
 test("built-in catalog groups reflect their switches and custom overrides", () => {
-  expect(M.catalog({}).length).toBe(47);
+  expect(M.catalog({}).length).toBe(48);
   expect(M.catalog({}, "models").length).toBe(16);
   expect(M.catalog({}, "ambiguous").length).toBe(11);
   expect(M.catalog({}).every((rule) => rule.state === "enabled")).toBe(true);

@@ -32,6 +32,7 @@ for (const c of cases) {
 }
 texts.push(
   "You are Chatbox, an AI assistant. Windsurf wrote this; open C:\\work\\Cursor\\src\\main.ts, read cursor.md, see https://cursor.com/docs.",
+  "You are Kelivo, a chat client.",
   "```\nconst who = \"Cursor\"\n```\nYou are Cursor.",
   "Move the cursor; goose bumps; the tabby cat; Traefik; we decline.",
   "You are Claude Sonnet 4.5, based on GPT-5.",

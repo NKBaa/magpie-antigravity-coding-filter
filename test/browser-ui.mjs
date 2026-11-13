@@ -158,7 +158,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       expect(await evaluate(`uiErrors`)).toEqual([]);
       expect(
         await evaluate(`document.querySelectorAll('#catalog-rows tr').length`),
-      ).toBe(75);
+      ).toBe(76);
       expect(
         await evaluate(
           `document.querySelectorAll('#catalog-rows tr[data-name="Cursor"]').length`,

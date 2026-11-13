@@ -12,8 +12,8 @@ const rowNamed = (rows, name) =>
 
 test("unified rules contain each real preset name once with its group and default", () => {
   const rules = M.ruleList({});
-  expect(rules).toHaveLength(74);
-  expect(new Set(rules.map((rule) => rule.name.toLowerCase())).size).toBe(74);
+  expect(rules).toHaveLength(75);
+  expect(new Set(rules.map((rule) => rule.name.toLowerCase())).size).toBe(75);
   for (const [group, mappings] of [
     ["common", engine.defaultMappings],
     ["models", engine.modelMappings],
@@ -42,7 +42,7 @@ test("custom overrides are deduplicated against built-ins and keep their spellin
       "CHATBOX: Final, New Agent: Example",
     ],
   });
-  expect(rules).toHaveLength(75);
+  expect(rules).toHaveLength(76);
   expect(
     rules.filter((rule) => rule.name.toLowerCase() === "chatbox"),
   ).toHaveLength(1);
@@ -126,7 +126,7 @@ test("editing a built-in creates one override without copying the preset into cu
   expect(rows).toEqual([
     { name: "CHATBOX", replacement: "Example", exclude: false },
   ]);
-  expect(listFromRows(rows)).toHaveLength(74);
+  expect(listFromRows(rows)).toHaveLength(75);
   expect(rowNamed(listFromRows(rows), "Chatbox").state).toBe("overridden");
 });
 

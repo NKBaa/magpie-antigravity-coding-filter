@@ -62,6 +62,7 @@
     ["WorkBuddy", "Antigravity"],
     ["Chatbox AI", "Antigravity"],
     ["Chatbox", "Antigravity"],
+    ["Kelivo", "Antigravity"],
   ]
 
   const modelMappings = [

@@ -15,6 +15,7 @@
     "antigravity",
     "claude-code",
     "chatbox",
+    "kelivo",
     "llm-gateway"
   ],
   "license": "MIT",

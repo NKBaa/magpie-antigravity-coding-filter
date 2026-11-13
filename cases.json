@@ -315,5 +315,11 @@
     "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
     "options": { "useAmbiguousKeywords": true, "mode": "rewrite", "customMappings": { "Cursor": "Cursor" } },
     "request": { "model": "m", "system": "You are Cursor.", "messages": [] }
+  },
+  {
+    "name": "Kelivo is in the preset",
+    "provider": { "id": "7c1958d885953cd3", "name": "Antigravity", "account": "antigravity", "model": "gemini-3-flash" },
+    "request": { "model": "m", "system": "You are Kelivo, a chat client.", "messages": [] },
+    "expect_request": { "model": "m", "system": "You are K\u200be\u200blivo, a chat client.", "messages": [] }
   }
 ]

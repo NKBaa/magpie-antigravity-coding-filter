@@ -42,7 +42,8 @@
 // rather than as "GitHub Copilot" plus a leftover " CLI".
 //
 // The preset is the Go plugin's 56 names minus the eleven that are also
-// ordinary English words (ambiguousNames below), plus Chatbox. Those eleven
+// ordinary English words (ambiguousNames below), plus the chat clients
+// Chatbox / Chatbox AI and Kelivo. Those eleven
 // came out of defaultMappings because "move the cursor to the end", "goose
 // bumps" and "the tabby cat" were being rewritten; a prompt that names one
 // adds it with customMappings, or takes all eleven back with
@@ -124,10 +125,11 @@ export const defaultMappings = [
   ["WorkBuddy", "Antigravity"],
 
   // Chat clients that write their own name into the system prompt they send.
-  // Chatbox's provider settings take any OpenAI-compatible host, so its
-  // requests can reach Antigravity through magpie like an agent's.
+  // Chatbox's and Kelivo's provider settings take any OpenAI-compatible host,
+  // so their requests can reach Antigravity through magpie like an agent's.
   ["Chatbox AI", "Antigravity"],
   ["Chatbox", "Antigravity"],
+  ["Kelivo", "Antigravity"],
 ]
 
 // modelMappings is off unless useModelKeywords is set. The preset above leaves
